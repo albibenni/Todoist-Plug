@@ -1,6 +1,13 @@
 import { TodoistApi } from "@doist/todoist-sdk";
 import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
-import { MarkdownView, Notice, Plugin, requestUrl } from "obsidian";
+import {
+  type Editor,
+  MarkdownView,
+  Notice,
+  Plugin,
+  requestUrl,
+  type WorkspaceLeaf,
+} from "obsidian";
 import { TodoistService } from "./services/TodoistService";
 import { TodoistSettingTab } from "./settings";
 import {
@@ -10,6 +17,7 @@ import {
 } from "./types";
 import { QuickAddModal } from "./ui/QuickAddModal";
 import { TaskRenderer } from "./ui/TaskRenderer";
+import { TODOIST_VIEW_TYPE, TodoistSidebarView } from "./ui/TodoistSidebarView";
 
 const TOKEN_KEY = "todoist-api-token";
 
@@ -46,6 +54,53 @@ export default class TodoistPlugin extends Plugin {
         } catch (error) {
           console.error("Error connecting to Todoist:", error);
           new Notice("Failed to connect to Todoist. Check your API token.");
+        }
+      },
+    });
+
+    // Register the custom sidebar view
+    this.registerView(
+      TODOIST_VIEW_TYPE,
+      (leaf: WorkspaceLeaf) => new TodoistSidebarView(leaf, this),
+    );
+
+    // Command to open the sidebar view
+    this.addCommand({
+      id: "open-todoist-sidebar",
+      name: "Open Todoist sidebar",
+      callback: () => {
+        this.activateView();
+      },
+    });
+
+    // Command to create a task from the current line
+    this.addCommand({
+      id: "add-task-from-current-line",
+      name: "Create task from current line",
+      editorCallback: async (editor: Editor, _view: MarkdownView) => {
+        if (!this.todoistService) {
+          new Notice("Todoist API token is not set. Please update settings.");
+          return;
+        }
+
+        let text = editor.getSelection().trim();
+        if (!text) {
+          const cursor = editor.getCursor();
+          text = editor.getLine(cursor.line).trim();
+        }
+
+        if (!text) {
+          new Notice("No text selected or found on current line.");
+          return;
+        }
+
+        try {
+          new Notice("Adding task to Todoist...");
+          await this.todoistService.addQuickTask(text);
+          new Notice("Task added successfully!");
+        } catch (error) {
+          console.error("Failed to add task from line:", error);
+          new Notice("Failed to add task.");
         }
       },
     });
@@ -130,6 +185,26 @@ export default class TodoistPlugin extends Plugin {
 
   onunload() {
     console.log("Unloading Todoist Bridge plugin");
+  }
+
+  async activateView() {
+    const { workspace } = this.app;
+
+    let leaf: WorkspaceLeaf | null = null;
+    const leaves = workspace.getLeavesOfType(TODOIST_VIEW_TYPE);
+
+    if (leaves.length > 0) {
+      leaf = leaves[0];
+    } else {
+      leaf = workspace.getRightLeaf(false);
+      if (leaf) {
+        await leaf.setViewState({ type: TODOIST_VIEW_TYPE, active: true });
+      }
+    }
+
+    if (leaf) {
+      workspace.revealLeaf(leaf);
+    }
   }
 
   getApiToken(): string | null {

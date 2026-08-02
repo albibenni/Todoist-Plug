@@ -373,3 +373,16 @@
   display: flex;
   align-items: center;
 }
+
+/* Todoist Sidebar View */
+.todoist-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+.todoist-sidebar-content {
+  overflow-y: auto;
+}

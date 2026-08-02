@@ -18,6 +18,9 @@ export class Plugin {
   saveData() {
     return Promise.resolve();
   }
+  registerView() {
+    /* mock */
+  }
 }
 
 export class Notice {}
@@ -53,6 +56,19 @@ export class Modal {
     /* mock */
   }
 }
+
+export class ItemView {
+  containerEl: HTMLElement;
+  contentEl: HTMLElement;
+  constructor(leaf: unknown) {
+    this.containerEl = document.createElement("div");
+    this.contentEl = document.createElement("div");
+  }
+}
+
+export const setIcon = (el: HTMLElement, iconId: string) => {
+  /* mock */
+};
 
 export const requestUrl = (params: unknown) => {
   return Promise.resolve({
