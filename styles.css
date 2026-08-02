@@ -1,8 +1,272 @@
-/*
+/* Add Task Modal Styles (mimicking jamiebrynes7/obsidian-todoist-plugin) */
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.task-creation-modal-root {
+  overflow-y: auto;
+}
 
-If your plugin does not need CSS, delete this file.
+.task-creation-modal-root .task-content-input textarea {
+  width: 100%;
+  border: 0;
+  background-color: unset;
+  box-shadow: none;
+  resize: none;
+  padding: 0px;
+}
 
-*/
+.task-creation-modal-root .task-content-input textarea:focus,
+.task-creation-modal-root .task-content-input textarea:hover {
+  border: 0;
+  background-color: unset;
+  box-shadow: none;
+}
+
+.task-creation-modal-root .task-name textarea {
+  font-size: var(--font-ui-large);
+  font-weight: var(--font-semibold);
+}
+
+.task-creation-modal-root .task-description textarea {
+  font-size: var(--font-ui-small);
+}
+
+.task-creation-modal-root .task-creation-selectors {
+  margin-top: 0.5em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.task-creation-modal-root .task-creation-selectors .task-creation-selectors-group {
+  display: flex;
+  align-items: center;
+}
+
+.task-creation-modal-root .task-creation-selectors .task-creation-selectors-group > * + * {
+  margin-left: 0.5em;
+}
+
+/* Fallback for select/input to match the button look */
+.task-creation-modal-root .task-creation-selectors input,
+.task-creation-modal-root .task-creation-selectors select,
+.task-creation-modal-root select.project-selector {
+  box-shadow: none;
+  background-color: unset;
+  border: 1px solid var(--color-base-25);
+  color: var(--text-muted);
+  border-radius: var(--radius-s);
+  padding: 4px 8px;
+  cursor: pointer;
+  outline: none;
+}
+
+.task-creation-modal-root .task-creation-selectors input:hover,
+.task-creation-modal-root .task-creation-selectors input:focus,
+.task-creation-modal-root .task-creation-selectors select:hover,
+.task-creation-modal-root .task-creation-selectors select:focus,
+.task-creation-modal-root select.project-selector:hover,
+.task-creation-modal-root select.project-selector:focus {
+  border: 1px solid var(--interactive-accent);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.task-creation-modal-root .task-creation-notes ul {
+  padding-inline-start: 16px;
+  font-size: var(--font-smallest);
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+.task-creation-modal-root .task-creation-controls {
+  display: flex;
+  justify-content: space-between;
+}
+
+.is-mobile .task-creation-modal-root .task-creation-controls {
+  flex-direction: column;
+}
+
+.is-mobile .task-creation-modal-root .task-creation-controls > * + * {
+  margin-top: 0.5em;
+}
+
+.task-creation-modal-root .task-creation-controls .task-creation-action {
+  display: flex;
+}
+
+.task-creation-modal-root .task-creation-controls .task-creation-action > * + * {
+  margin-left: 1em;
+}
+
+.is-mobile .task-creation-modal-root .task-creation-controls .task-creation-action {
+  justify-content: end;
+}
+
+.task-creation-modal-root .add-task-button-group {
+  display: flex;
+  gap: 0;
+}
+
+.task-creation-modal-root .add-task-button-group .add-task-primary {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  flex: 1;
+}
+
+.task-creation-modal-root .add-task-button-group .add-task-dropdown {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: 1px solid var(--background-modifier-border);
+  padding: 0 8px;
+  min-width: auto;
+}
+
+.task-creation-modal-root hr {
+  margin: 1em 0;
+  border-color: var(--color-base-25);
+}
+
+.task-option-dialog {
+  background-color: var(--modal-background);
+  border: var(--modal-border-width) solid var(--modal-border-color);
+  border-radius: 4px;
+  min-width: 200px;
+  box-shadow: var(--shadow-s);
+  padding: 0.5em 0;
+  position: absolute;
+  z-index: 1000;
+}
+
+.task-date-menu .date-suggestion-elem {
+  padding: 8px 1em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-smaller);
+  cursor: pointer;
+}
+
+.task-date-menu .date-suggestion-elem:hover {
+  background-color: var(--background-modifier-cover);
+}
+
+.task-date-menu .date-suggestion-elem .date-suggestion-label {
+  display: flex;
+  align-items: center;
+  font-weight: var(--font-semibold);
+}
+
+.task-date-menu .date-suggestion-elem .date-suggestion-label .obsidian-icon {
+  margin-right: 1em;
+}
+
+.task-date-menu .date-suggestion-elem .date-suggestion-day {
+  color: var(--text-faint);
+}
+
+.task-date-menu hr {
+  width: 100%;
+  border-color: var(--color-base-25);
+  margin: 1em 0;
+}
+
+.task-date-menu .date-picker {
+  padding: 0px 1em;
+  font-size: var(--font-small);
+}
+
+.task-date-menu .date-picker header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.task-date-menu .date-picker h4 {
+  margin-left: 0.5em;
+  font-size: var(--font-small);
+  font-weight: var(--font-semibold);
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.task-date-menu .date-picker .date-picker-controls {
+  display: flex;
+  align-items: center;
+  justify-content: right;
+}
+
+.task-date-menu .date-picker .date-picker-controls button {
+  box-shadow: none;
+  background-color: unset;
+  border: 1px solid rgba(0, 0, 0, 0);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.task-date-menu .date-picker .date-picker-controls button:hover {
+  border: 1px solid var(--interactive-accent);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.task-date-menu .date-picker .calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-top: 0.5em;
+}
+
+.task-date-menu .date-picker .calendar-grid .calendar-day-header {
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.8em;
+  color: var(--text-muted);
+  padding-bottom: 4px;
+}
+
+.task-date-menu .date-picker .calendar-cell {
+  text-align: center;
+  padding: 6px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.task-date-menu .date-picker .calendar-cell:hover {
+  background-color: var(--background-modifier-cover);
+}
+
+.task-date-menu .date-picker .calendar-cell[data-outside-month="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.task-date-menu .date-picker .calendar-cell[data-selected="true"] {
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.task-date-menu .time-picker-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0 1em 1em 1em;
+}
+
+.task-date-menu .time-picker-container .time-picker-button {
+  flex-grow: 1;
+  color: var(--text-muted);
+  box-shadow: none;
+  background-color: unset;
+  border: 1px solid var(--color-base-25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.task-date-menu .time-picker-container .time-picker-button:hover {
+  border: 1px solid var(--interactive-accent);
+  box-shadow: var(--box-shadow-hover);
+}
