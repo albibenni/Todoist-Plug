@@ -139,25 +139,42 @@ export class QuickAddModal extends Modal {
     const controls = root.createDiv("task-creation-controls");
 
     const projectDiv = controls.createDiv();
-    const projectSelect = projectDiv.createEl("select");
-    projectSelect.addClass("project-selector");
+    const projectBtn = projectDiv.createEl("button");
+    projectBtn.addClass("project-selector");
+    projectBtn.setAttribute("aria-label", "Set project");
+    
+    const projectIcon = projectBtn.createSpan("obsidian-icon todoist-project-icon");
+    setIcon(projectIcon, "hash");
+    
+    const projectLabel = projectBtn.createSpan();
+    projectLabel.textContent = "Inbox";
+    
+    const chevronIcon = projectBtn.createSpan("obsidian-icon");
+    setIcon(chevronIcon, "chevron-down");
 
-    const inboxOpt = projectSelect.createEl("option");
-    inboxOpt.value = "";
-    inboxOpt.textContent = "# Inbox";
-    projectSelect.value = this.projectId;
+    const TODOIST_COLORS: Record<string, string> = {
+      berry_red: "#b8256f", red: "#db4035", orange: "#ff9933", yellow: "#fad000",
+      olive_green: "#afb83b", lime_green: "#7ecc49", green: "#299438", mint_green: "#6accbc",
+      teal: "#158fad", sky_blue: "#14aaf5", light_blue: "#96c3eb", blue: "#4073ff",
+      grape: "#884dff", violet: "#af38eb", lavender: "#eb96eb", magenta: "#e05194",
+      salmon: "#ff8d85", charcoal: "#808080", grey: "#b8b8b8", taupe: "#ccac93"
+    };
 
+    let projectsCache: any[] = [];
     this.service.getProjects().then((projects) => {
-      projects.forEach((p) => {
-        const opt = projectSelect.createEl("option");
-        opt.value = p.id;
-        opt.textContent = "# " + p.name;
-      });
-      projectSelect.value = this.projectId;
+      projectsCache = projects;
+      const proj = projects.find((p) => p.id === this.projectId);
+      if (proj) {
+        projectLabel.textContent = proj.name;
+        if (proj.color && TODOIST_COLORS[proj.color]) {
+            projectIcon.style.color = TODOIST_COLORS[proj.color]!;
+        }
+      }
     });
 
-    projectSelect.addEventListener("change", (e) => {
-      this.projectId = (e.target as HTMLSelectElement).value;
+    projectBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.showProjectPopover(projectBtn, projectLabel, projectIcon, projectsCache, TODOIST_COLORS);
     });
 
     const actionGrp = controls.createDiv("task-creation-action");
@@ -195,6 +212,87 @@ export class QuickAddModal extends Modal {
   private autoResizeTextarea(textarea: HTMLTextAreaElement) {
     textarea.style.height = "auto";
     textarea.style.height = textarea.scrollHeight + "px";
+  }
+
+  private showProjectPopover(btn: HTMLButtonElement, label: HTMLSpanElement, iconElem: HTMLSpanElement, projects: any[], colors: Record<string, string>) {
+    if (document.body.querySelector(".task-project-menu")) {
+      document.body.querySelector(".task-project-menu")?.remove();
+      return;
+    }
+    document.querySelectorAll(".task-option-dialog").forEach((el) => el.remove());
+
+    const popover = btn.ownerDocument.body.createDiv("task-option-dialog task-project-menu");
+    const rect = btn.getBoundingClientRect();
+    popover.style.position = "fixed";
+    popover.style.top = `${rect.bottom + 4}px`;
+    popover.style.left = `${rect.left}px`;
+    popover.style.zIndex = "1000";
+
+    const searchContainer = popover.createDiv("search-filter-container");
+    const searchInput = searchContainer.createEl("input", { type: "text" });
+    searchInput.placeholder = "Type a project name";
+
+    popover.createEl("hr");
+
+    const listContainer = popover.createDiv("project-options-list");
+
+    const renderProjects = (filter: string) => {
+      listContainer.empty();
+      
+      if ("inbox".includes(filter.toLowerCase())) {
+        const inboxItem = listContainer.createDiv("project-option");
+        const inboxIconSpan = inboxItem.createSpan("obsidian-icon");
+        setIcon(inboxIconSpan, "inbox");
+        inboxItem.createSpan().textContent = "Inbox";
+        inboxItem.addEventListener("click", () => {
+          this.projectId = "";
+          label.textContent = "Inbox";
+          iconElem.style.color = "";
+          popover.remove();
+        });
+      }
+
+      projects.forEach((p) => {
+        if (!p.name.toLowerCase().includes(filter.toLowerCase())) return;
+        
+        const item = listContainer.createDiv("project-option");
+        const iconSpan = item.createSpan("obsidian-icon");
+        setIcon(iconSpan, "hash");
+        if (p.color && colors[p.color]) {
+          iconSpan.style.color = colors[p.color]!;
+        }
+        item.createSpan().textContent = p.name;
+        
+        item.addEventListener("click", () => {
+          this.projectId = p.id;
+          label.textContent = p.name;
+          if (p.color && colors[p.color]) {
+              iconElem.style.color = colors[p.color]!;
+          } else {
+              iconElem.style.color = "";
+          }
+          popover.remove();
+        });
+      });
+    };
+
+    renderProjects("");
+
+    searchInput.addEventListener("input", (e) => {
+      renderProjects((e.target as HTMLInputElement).value);
+    });
+
+    const closePopover = (e: MouseEvent) => {
+      if (!popover.contains(e.target as Node)) {
+        popover.remove();
+        btn.ownerDocument.removeEventListener("click", closePopover);
+      }
+    };
+    
+    setTimeout(() => {
+      btn.ownerDocument.addEventListener("click", closePopover);
+      searchInput.focus();
+    }, 0);
   }
 
   private showDatePopover(container: HTMLElement, btn: HTMLButtonElement) {

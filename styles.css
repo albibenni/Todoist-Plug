@@ -280,3 +280,47 @@
   border: 1px solid var(--interactive-accent);
   box-shadow: var(--box-shadow-hover);
 }
+
+.task-project-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.task-project-menu .search-filter-container {
+  padding: 8px;
+}
+
+.task-project-menu .search-filter-container input {
+  width: 100%;
+  padding: 4px 8px;
+  background-color: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal);
+  border-radius: var(--radius-s);
+}
+
+.task-project-menu hr {
+  margin: 0;
+  border-color: var(--color-base-25);
+}
+
+.task-project-menu .project-options-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.task-project-menu .project-option {
+  padding: 8px 1em;
+  display: flex;
+  align-items: center;
+  font-size: var(--font-smaller);
+  cursor: pointer;
+}
+
+.task-project-menu .project-option:hover {
+  background-color: var(--background-modifier-cover);
+}
+
+.task-project-menu .project-option .obsidian-icon {
+  margin-right: 0.5em;
+}
