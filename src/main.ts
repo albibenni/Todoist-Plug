@@ -108,6 +108,50 @@ export default class TodoistPlugin extends Plugin {
       },
     });
 
+    // Command to check if a task exists based on current line or filename
+    this.addCommand({
+      id: "check-task-exists",
+      name: "Check if task already exists",
+      editorCallback: async (
+        editor: Editor,
+        _view: MarkdownView | import("obsidian").MarkdownFileInfo,
+      ) => {
+        if (!this.todoistService) {
+          new Notice("Todoist API token is not set. Please update settings.");
+          return;
+        }
+
+        let text = editor.getSelection().trim();
+        if (!text) {
+          const cursor = editor.getCursor();
+          text = editor.getLine(cursor.line).trim();
+        }
+
+        if (!text) {
+          new Notice("No text selected or found on current line.");
+          return;
+        }
+
+        try {
+          const currentFile = this.app.workspace.getActiveFile();
+          new Notice(`Searching Todoist for: "${text}"...`);
+          const exists = await this.todoistService.checkTaskExists(
+            text,
+            currentFile ? currentFile.basename : undefined,
+          );
+
+          if (exists) {
+            new Notice("✅ Yes! This task already exists in Todoist.");
+          } else {
+            new Notice("❌ No matching task found in Todoist.");
+          }
+        } catch (error) {
+          console.error("Failed to check task existence:", error);
+          new Notice("Failed to check Todoist.");
+        }
+      },
+    });
+
     // Quick Add Task Command
     this.addCommand({
       id: "add-quick-task",

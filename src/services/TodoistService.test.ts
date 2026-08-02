@@ -60,4 +60,60 @@ describe("TodoistService", () => {
       expect(mockApi.getTasksByFilter).toHaveBeenCalledWith({ query: "today" });
     });
   });
+
+  describe("checkTaskExists", () => {
+    it("should return true if a task matches the sanitized text", async () => {
+      mockApi.getTasksByFilter.mockResolvedValue([
+        { id: "1", content: "Buy milk" },
+      ]);
+
+      // Should sanitize '#Groceries @shop p1 today' out of the string
+      const result = await service.checkTaskExists(
+        "Buy milk #Groceries @shop p1 today",
+      );
+
+      expect(mockApi.getTasksByFilter).toHaveBeenCalledWith({
+        query: "search: buy milk",
+      });
+      expect(result).toBe(true);
+    });
+
+    it("should return false if no tasks match the text", async () => {
+      mockApi.getTasksByFilter.mockResolvedValue([
+        { id: "1", content: "Do laundry" },
+      ]);
+
+      const result = await service.checkTaskExists("Buy milk");
+      expect(result).toBe(false);
+    });
+
+    it("should fallback to checking filename if text doesn't match", async () => {
+      // First call (content search) returns empty
+      // Second call (filename search) returns match
+      mockApi.getTasksByFilter
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([{ id: "1", content: "Read Notes.md" }]);
+
+      const result = await service.checkTaskExists(
+        "Read about topics",
+        "Notes.md",
+      );
+
+      expect(mockApi.getTasksByFilter).toHaveBeenCalledTimes(2);
+      expect(mockApi.getTasksByFilter).toHaveBeenNthCalledWith(1, {
+        query: "search: read about topics",
+      });
+      expect(mockApi.getTasksByFilter).toHaveBeenNthCalledWith(2, {
+        query: "search: Notes.md",
+      });
+      expect(result).toBe(true);
+    });
+
+    it("should handle API errors gracefully and return false", async () => {
+      mockApi.getTasksByFilter.mockRejectedValue(new Error("API Error"));
+
+      const result = await service.checkTaskExists("Buy milk");
+      expect(result).toBe(false);
+    });
+  });
 });

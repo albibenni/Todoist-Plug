@@ -213,6 +213,50 @@ export class QuickAddModal extends Modal {
     });
 
     const actionGrp = controls.createDiv("task-creation-action");
+
+    const checkBtn = actionGrp.createEl("button");
+    checkBtn.textContent = "Check if exists";
+    checkBtn.style.marginRight = "auto"; // Push it to the left side if possible, or just space it
+    checkBtn.addEventListener("click", async () => {
+      if (!this.taskTitle.trim()) {
+        new Notice("Task title is empty");
+        return;
+      }
+
+      let filenameForCheck: string | undefined = undefined;
+      if (this.initialUrl) {
+        const fileMatch = this.initialUrl.match(/file=([^&]+)/);
+        if (fileMatch && fileMatch[1]) {
+          filenameForCheck = decodeURIComponent(fileMatch[1]);
+          filenameForCheck = filenameForCheck
+            .replace(/\.md$/, "")
+            .split("/")
+            .pop();
+        }
+      }
+
+      new Notice(`Searching Todoist for: "${this.taskTitle}"...`);
+      checkBtn.disabled = true;
+      checkBtn.textContent = "Checking...";
+
+      try {
+        const exists = await this.service.checkTaskExists(
+          this.taskTitle,
+          filenameForCheck,
+        );
+        if (exists) {
+          new Notice("✅ Yes! This task already exists in Todoist.");
+        } else {
+          new Notice("❌ No matching task found in Todoist.");
+        }
+      } catch (_e) {
+        new Notice("Failed to check Todoist.");
+      } finally {
+        checkBtn.disabled = false;
+        checkBtn.textContent = "Check if exists";
+      }
+    });
+
     const cancelBtn = actionGrp.createEl("button");
     cancelBtn.textContent = "Cancel";
     cancelBtn.addEventListener("click", () => this.close());

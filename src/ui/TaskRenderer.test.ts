@@ -73,7 +73,7 @@ describe("TaskRenderer", () => {
       const result = TaskRenderer.renderMarkdown([mockTask2]);
       expect(result).toContain("- [x] Urgent meeting");
       expect(result).toContain("**(p1)**"); // priority 4 maps to p1
-      expect(result).toContain("📅 *Today at 10am*");
+      expect(result).toContain("📅 *Oct 27*");
     });
   });
 
@@ -108,7 +108,7 @@ describe("TaskRenderer", () => {
       ) as HTMLInputElement;
       expect(secondCheckbox.checked).toBe(true);
       expect(secondItem?.querySelector(".todoist-task-due")?.textContent).toBe(
-        "Today at 10am",
+        "Oct 27",
       );
     });
   });

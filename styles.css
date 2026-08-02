@@ -425,3 +425,13 @@
 .todoist-priority-2 input[type="checkbox"] {
   border: 2px solid #246fe0;
 }
+
+.todoist-overdue {
+  color: var(--text-error) !important;
+  font-weight: bold;
+}
+
+.todoist-today {
+  color: var(--text-success) !important;
+  font-weight: bold;
+}

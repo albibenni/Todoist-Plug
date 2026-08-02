@@ -2,6 +2,53 @@ import type { Project, Task } from "@doist/todoist-sdk";
 
 export class TaskRenderer {
   /**
+   * Helper to format YYYY-MM-DD into human-readable absolute dates
+   */
+  static formatDate(dateString: string): {
+    text: string;
+    isOverdue: boolean;
+    isToday: boolean;
+  } {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (!match) {
+        return { text: dateString, isOverdue: false, isToday: false };
+      }
+
+      const year = parseInt(match[1] as string, 10);
+      const month = parseInt(match[2] as string, 10);
+      const day = parseInt(match[3] as string, 10);
+
+      const date = new Date(year, month - 1, day);
+      date.setHours(0, 0, 0, 0);
+
+      const diffTime = date.getTime() - today.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+      const isOverdue = diffDays < 0;
+      const isToday = diffDays === 0;
+
+      let text = "";
+      if (diffDays === 0) text = "Today";
+      else if (diffDays === 1) text = "Tomorrow";
+      else if (diffDays === -1) text = "Yesterday";
+      else {
+        text = date.toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+        });
+      }
+
+      return { text, isOverdue, isToday };
+    } catch (_e) {
+      return { text: dateString, isOverdue: false, isToday: false };
+    }
+  }
+
+  /**
    * Renders a list of Todoist tasks into a Markdown list representation.
    */
   static renderMarkdown(tasks: Task[]): string {
@@ -23,8 +70,9 @@ export class TaskRenderer {
         }
 
         // Append due date if it exists
-        if (task.due && task.due.string) {
-          taskString += ` 📅 *${task.due.string}*`;
+        if (task.due && task.due.date) {
+          const { text } = TaskRenderer.formatDate(task.due.date);
+          taskString += ` 📅 *${text}*`;
         }
 
         // Add a direct link to the task in the web app
@@ -88,10 +136,19 @@ export class TaskRenderer {
         metadataContainer.appendChild(projectSpan);
       }
 
-      if (task.due && task.due.string) {
+      if (task.due && task.due.date) {
+        const { text, isOverdue, isToday } = TaskRenderer.formatDate(
+          task.due.date,
+        );
         const dueSpan = document.createElement("span");
-        dueSpan.textContent = task.due.string;
+
+        // If it's recurring, optionally append the recurrence text, but keep it clean
+        dueSpan.textContent = task.due.isRecurring ? `${text} 🔁` : text;
         dueSpan.classList.add("todoist-task-due");
+
+        if (isOverdue) dueSpan.classList.add("todoist-overdue");
+        if (isToday) dueSpan.classList.add("todoist-today");
+
         metadataContainer.appendChild(dueSpan);
       }
 

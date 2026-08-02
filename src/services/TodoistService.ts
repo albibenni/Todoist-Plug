@@ -52,6 +52,37 @@ export class TodoistService {
     }
   }
 
+  async checkTaskExists(content: string, filename?: string): Promise<boolean> {
+    try {
+      const sanitized = content
+        .replace(
+          /(#[^\s]+|@[^\s]+|p[1-4]|\b(today|tomorrow|in \d+ days?|in \d+ weeks?)\b)/gi,
+          "",
+        )
+        .trim();
+
+      const searchTarget = (sanitized || content).toLowerCase();
+
+      // Query Todoist using the exact same 'search:' syntax as the user's script
+      const tasks = await this.fetchTasks(`search: ${searchTarget}`);
+      let exists = tasks.some((t) =>
+        t.content.toLowerCase().includes(searchTarget),
+      );
+
+      if (!exists && filename) {
+        const fileTasks = await this.fetchTasks(`search: ${filename}`);
+        exists = fileTasks.some((t) =>
+          t.content.toLowerCase().includes(filename.toLowerCase()),
+        );
+      }
+
+      return exists;
+    } catch (error) {
+      console.error("Failed to check task existence:", error);
+      return false;
+    }
+  }
+
   async addTask(args: AddTaskArgs): Promise<Task> {
     try {
       return await this.api.addTask(args);
