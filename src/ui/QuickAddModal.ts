@@ -94,7 +94,7 @@ export class QuickAddModal extends Modal {
     setIcon(priorityIcon, "flag");
     const priorityLabel = priorityBtn.createSpan();
     const currentPri = priorities.find(p => p.val === this.priority)?.text || "Priority 4";
-    priorityLabel.textContent = " " + currentPri;
+    priorityLabel.textContent = currentPri;
 
     priorityBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -106,7 +106,7 @@ export class QuickAddModal extends Modal {
             .setIcon("flag")
             .onClick(() => {
               this.priority = p.val;
-              priorityLabel.textContent = " " + p.text;
+              priorityLabel.textContent = p.text;
             });
         });
       });
@@ -118,7 +118,7 @@ export class QuickAddModal extends Modal {
     const labelIcon = labelBtn.createSpan("obsidian-icon");
     setIcon(labelIcon, "tag");
     const labelLabel = labelBtn.createSpan();
-    labelLabel.textContent = " Labels (0)";
+    labelLabel.textContent = "Labels (0)";
     
     labelBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -144,7 +144,7 @@ export class QuickAddModal extends Modal {
     projectBtn.setAttribute("aria-label", "Set project");
     
     const projectIcon = projectBtn.createSpan("obsidian-icon todoist-project-icon");
-    setIcon(projectIcon, "hash");
+    setIcon(projectIcon, this.projectId ? "hash" : "inbox");
     
     const projectLabel = projectBtn.createSpan();
     projectLabel.textContent = "Inbox";
@@ -162,12 +162,12 @@ export class QuickAddModal extends Modal {
 
     let projectsCache: any[] = [];
     this.service.getProjects().then((projects) => {
-      projectsCache = projects;
+      projectsCache = projects.filter(p => p.name !== "Inbox" && !(p as any).inboxProject && !(p as any).isInboxProject);
       const proj = projects.find((p) => p.id === this.projectId);
       if (proj) {
         projectLabel.textContent = proj.name;
         if (proj.color && TODOIST_COLORS[proj.color]) {
-            projectIcon.style.color = TODOIST_COLORS[proj.color]!;
+          projectIcon.style.color = TODOIST_COLORS[proj.color]!;
         }
       }
     });
@@ -247,6 +247,7 @@ export class QuickAddModal extends Modal {
         inboxItem.addEventListener("click", () => {
           this.projectId = "";
           label.textContent = "Inbox";
+          setIcon(iconElem, "inbox");
           iconElem.style.color = "";
           popover.remove();
         });
@@ -266,6 +267,7 @@ export class QuickAddModal extends Modal {
         item.addEventListener("click", () => {
           this.projectId = p.id;
           label.textContent = p.name;
+          setIcon(iconElem, "hash");
           if (p.color && colors[p.color]) {
               iconElem.style.color = colors[p.color]!;
           } else {
