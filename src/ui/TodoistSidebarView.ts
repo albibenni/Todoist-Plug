@@ -62,12 +62,13 @@ export class TodoistSidebarView extends ItemView {
     try {
       const tasks =
         await this.plugin.todoistService.fetchTasks("today | overdue");
+      const projects = await this.plugin.todoistService.getProjects();
       loading.remove();
 
       if (tasks.length === 0) {
         container.createEl("p", { text: "No tasks for today! 🎉" });
       } else {
-        TaskRenderer.renderHTML(tasks, container);
+        TaskRenderer.renderHTML(tasks, container, projects);
       }
     } catch (_error) {
       loading.remove();

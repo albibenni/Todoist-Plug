@@ -20,6 +20,9 @@ function extractArray<T>(res: unknown): T[] {
 }
 
 export class TodoistService {
+  private projectsCache: Project[] | null = null;
+  private projectsCacheTime = 0;
+
   constructor(private api: TodoistApi) {}
 
   async addQuickTask(text: string): Promise<Task> {
@@ -59,8 +62,15 @@ export class TodoistService {
   }
 
   async getProjects(): Promise<Project[]> {
+    const now = Date.now();
+    if (this.projectsCache && now - this.projectsCacheTime < 300000) {
+      return this.projectsCache;
+    }
     try {
-      return extractArray<Project>(await this.api.getProjects());
+      const projects = extractArray<Project>(await this.api.getProjects());
+      this.projectsCache = projects;
+      this.projectsCacheTime = now;
+      return projects;
     } catch (error) {
       console.error("Failed to get projects:", error);
       throw new Error("Failed to get projects from Todoist");

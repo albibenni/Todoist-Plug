@@ -386,3 +386,42 @@
 .todoist-sidebar-content {
   overflow-y: auto;
 }
+
+/* Task List Styling */
+.todoist-task-list {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.todoist-task-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.todoist-task-content {
+  flex-grow: 1;
+}
+
+.todoist-task-metadata {
+  display: flex;
+  gap: 6px;
+  font-size: var(--font-smaller);
+  color: var(--text-muted);
+}
+
+.todoist-task-project {
+  color: var(--text-accent);
+}
+
+/* Priority Colors */
+.todoist-priority-4 input[type="checkbox"] {
+  border: 2px solid #db4c3f;
+}
+.todoist-priority-3 input[type="checkbox"] {
+  border: 2px solid #eb8909;
+}
+.todoist-priority-2 input[type="checkbox"] {
+  border: 2px solid #246fe0;
+}

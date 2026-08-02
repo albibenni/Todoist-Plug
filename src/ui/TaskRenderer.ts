@@ -1,4 +1,4 @@
-import type { Task } from "@doist/todoist-sdk";
+import type { Project, Task } from "@doist/todoist-sdk";
 
 export class TaskRenderer {
   /**
@@ -40,7 +40,11 @@ export class TaskRenderer {
   /**
    * Renders tasks into an HTML element structure using standard DOM API
    */
-  static renderHTML(tasks: Task[], container: HTMLElement): void {
+  static renderHTML(
+    tasks: Task[],
+    container: HTMLElement,
+    projects: Project[] = [],
+  ): void {
     container.innerHTML = "";
 
     if (!tasks || tasks.length === 0) {
@@ -54,9 +58,12 @@ export class TaskRenderer {
     const ul = document.createElement("ul");
     ul.classList.add("todoist-task-list");
 
+    const projectsMap = Object.fromEntries(projects.map((p) => [p.id, p]));
+
     tasks.forEach((task) => {
       const li = document.createElement("li");
       li.classList.add("todoist-task-item");
+      li.classList.add(`todoist-priority-${task.priority}`);
 
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
@@ -69,11 +76,27 @@ export class TaskRenderer {
       span.classList.add("todoist-task-content");
       li.appendChild(span);
 
+      const metadataContainer = document.createElement("span");
+      metadataContainer.classList.add("todoist-task-metadata");
+
+      const project = task.projectId ? projectsMap[task.projectId] : undefined;
+      if (project) {
+        const projectSpan = document.createElement("span");
+        projectSpan.textContent = `#${project.name}`;
+        projectSpan.classList.add("todoist-task-project");
+        // Use a simple hash for color mapping if desired, or let CSS handle it
+        metadataContainer.appendChild(projectSpan);
+      }
+
       if (task.due && task.due.string) {
         const dueSpan = document.createElement("span");
         dueSpan.textContent = task.due.string;
         dueSpan.classList.add("todoist-task-due");
-        li.appendChild(dueSpan);
+        metadataContainer.appendChild(dueSpan);
+      }
+
+      if (metadataContainer.children.length > 0) {
+        li.appendChild(metadataContainer);
       }
 
       ul.appendChild(li);

@@ -77,7 +77,10 @@ export default class TodoistPlugin extends Plugin {
     this.addCommand({
       id: "add-task-from-current-line",
       name: "Create task from current line",
-      editorCallback: async (editor: Editor, _view: MarkdownView) => {
+      editorCallback: async (
+        editor: Editor,
+        _view: MarkdownView | import("obsidian").MarkdownFileInfo,
+      ) => {
         if (!this.todoistService) {
           new Notice("Todoist API token is not set. Please update settings.");
           return;
@@ -168,10 +171,11 @@ export default class TodoistPlugin extends Plugin {
 
         try {
           const tasks = await this.todoistService.fetchTasks(filterQuery);
+          const projects = await this.todoistService.getProjects();
           // Remove loading element
           loadingEl.remove();
           // Render the HTML
-          TaskRenderer.renderHTML(tasks, el);
+          TaskRenderer.renderHTML(tasks, el, projects);
         } catch (_error) {
           loadingEl.remove();
           const p = document.createElement("p");
@@ -194,7 +198,7 @@ export default class TodoistPlugin extends Plugin {
     const leaves = workspace.getLeavesOfType(TODOIST_VIEW_TYPE);
 
     if (leaves.length > 0) {
-      leaf = leaves[0];
+      leaf = leaves[0] ?? null;
     } else {
       leaf = workspace.getRightLeaf(false);
       if (leaf) {
