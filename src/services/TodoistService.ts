@@ -2,6 +2,7 @@ import type {
   AddTaskArgs,
   Project,
   Task,
+  Label,
   TodoistApi,
 } from "@doist/todoist-sdk";
 
@@ -49,6 +50,16 @@ export class TodoistService {
     } catch (error) {
       console.error("Failed to get projects:", error);
       throw new Error("Failed to get projects from Todoist");
+    }
+  }
+
+  async getLabels(): Promise<Label[]> {
+    try {
+      const res = await this.api.getLabels();
+      return (res as any).results || res;
+    } catch (error) {
+      console.error("Failed to get labels:", error);
+      throw new Error("Failed to get labels from Todoist");
     }
   }
 }

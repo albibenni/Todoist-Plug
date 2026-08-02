@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting, setIcon } from "obsidian";
 import { z } from "zod";
 import TodoistPlugin from "./main";
 
@@ -8,6 +8,7 @@ export const TodoistPluginSettingsSchema = z.object({
   defaultProject: z.string().optional(),
   defaultPriority: z.number().min(1).max(4).default(1),
   defaultDate: z.string().default("today"),
+  defaultLabels: z.array(z.string()).default([]),
 });
 
 export type TodoistPluginSettings = z.infer<typeof TodoistPluginSettingsSchema>;
@@ -15,6 +16,7 @@ export type TodoistPluginSettings = z.infer<typeof TodoistPluginSettingsSchema>;
 export const DEFAULT_SETTINGS: TodoistPluginSettings = {
   defaultPriority: 1,
   defaultDate: "today",
+  defaultLabels: [],
 };
 
 export class TodoistSettingTab extends PluginSettingTab {
@@ -29,25 +31,39 @@ export class TodoistSettingTab extends PluginSettingTab {
     const { containerEl } = this;
 
     containerEl.empty();
+    containerEl.addClass("todoist-settings-tab");
 
-    containerEl.createEl("h2", { text: "Todoist Plug Settings" });
+    containerEl.createEl("h3", { text: "General" });
 
-    new Setting(containerEl)
-      .setName("API Token")
-      .setDesc(
-        "Your Todoist API token. This is saved securely to your OS keychain and does not sync to other devices.",
-      )
-      .addText((text) => {
+    const linksSetting = new Setting(containerEl)
+      .setName("Links")
+      .setDesc("Helpful links and resources for Todoist Plug.");
+      
+    linksSetting.addButton((btn) => btn.setButtonText("Docs").setIcon("book-open").setTooltip("View documentation").setCta().setClass("todoist-settings-btn").onClick(() => window.open("https://github.com/albibenni/Todoist-Plug#readme")));
+    linksSetting.addButton((btn) => btn.setButtonText("Feedback").setIcon("github").setTooltip("Report an issue").setCta().setClass("todoist-settings-btn").onClick(() => window.open("https://github.com/albibenni/Todoist-Plug/issues")));
+    linksSetting.addButton((btn) => btn.setButtonText("Donate").setIcon("coffee").setTooltip("Support development").setCta().setClass("todoist-settings-btn").onClick(() => window.open("https://www.paypal.com/donate/?cmd=_donations&business=JEUGAV9HY5YFU&currency_code=EUR&source=url")));
+
+    const apiSetting = new Setting(containerEl)
+      .setName("API token")
+      .setDesc("The Todoist API token to use when fetching tasks");
+    
+    if (this.plugin.getApiToken()) {
+        const checkIcon = apiSetting.controlEl.createSpan("todoist-success-icon");
+        setIcon(checkIcon, "check-circle");
+    }
+
+    apiSetting.addText((text) => {
         text
           .setPlaceholder("Enter your API token")
           .setValue(this.plugin.getApiToken() || "")
           .onChange((value) => {
             this.plugin.setApiToken(value);
-            // Re-initialize the API client when the token changes
             this.plugin.initTodoistClient();
           });
         text.inputEl.type = "password";
-      });
+    });
+
+    containerEl.createEl("h3", { text: "Defaults" }).style.marginTop = "2em";
 
     const projectSetting = new Setting(containerEl)
       .setName("Default Project")
@@ -96,15 +112,31 @@ export class TodoistSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Default Date")
-      .setDesc(
-        "The default due date string (e.g., 'today', 'tomorrow', 'next week') for new tasks.",
-      )
+      .setDesc("The default due date string for new tasks.")
+      .addDropdown((dropdown) => {
+        dropdown.addOption("today", "Today");
+        dropdown.addOption("tomorrow", "Tomorrow");
+        dropdown.addOption("next week", "Next week");
+        dropdown.addOption("no date", "No date");
+        dropdown.setValue(this.plugin.settings.defaultDate);
+        dropdown.onChange(async (value) => {
+          this.plugin.settings.defaultDate = value;
+          await this.plugin.saveSettings();
+        });
+      });
+
+    new Setting(containerEl)
+      .setName("Default Labels")
+      .setDesc("Comma-separated list of labels to apply by default.")
       .addText((text) => {
         text
-          .setPlaceholder("e.g. today")
-          .setValue(this.plugin.settings.defaultDate)
+          .setPlaceholder("e.g. work, important")
+          .setValue((this.plugin.settings.defaultLabels || []).join(", "))
           .onChange(async (value) => {
-            this.plugin.settings.defaultDate = value;
+            this.plugin.settings.defaultLabels = value
+              .split(",")
+              .map((l) => l.trim())
+              .filter((l) => l.length > 0);
             await this.plugin.saveSettings();
           });
       });

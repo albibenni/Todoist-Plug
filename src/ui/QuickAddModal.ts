@@ -9,6 +9,7 @@ export class QuickAddModal extends Modal {
   private dueDate = "";
   private priority = 1;
   private projectId = "";
+  private labels: string[] = [];
 
   private service: TodoistService;
   private settings: TodoistPluginSettings;
@@ -33,6 +34,7 @@ export class QuickAddModal extends Modal {
     this.dueDate = settings.defaultDate || "today";
     this.priority = settings.defaultPriority || 1;
     this.projectId = settings.defaultProject || "";
+    this.labels = [...(settings.defaultLabels || [])];
   }
 
   onOpen() {
@@ -40,6 +42,19 @@ export class QuickAddModal extends Modal {
     contentEl.empty();
 
     const root = contentEl.createDiv("task-creation-modal-root");
+
+    const TODOIST_COLORS: Record<string, string> = {
+      berry_red: "#b8256f", red: "#db4035", orange: "#ff9933", yellow: "#fad000",
+      olive_green: "#afb83b", lime_green: "#7ecc49", green: "#299438", mint_green: "#6accbc",
+      teal: "#158fad", sky_blue: "#14aaf5", light_blue: "#96c3eb", blue: "#4073ff",
+      grape: "#884dff", violet: "#af38eb", lavender: "#eb96eb", magenta: "#e05194",
+      salmon: "#ff8d85", charcoal: "#808080", grey: "#b8b8b8", taupe: "#ccac93"
+    };
+
+    let labelsCache: any[] = [];
+    this.service.getLabels().then((labels) => {
+      labelsCache = labels;
+    });
 
     // Title
     const nameGroup = root.createDiv("task-content-input task-name");
@@ -118,11 +133,11 @@ export class QuickAddModal extends Modal {
     const labelIcon = labelBtn.createSpan("obsidian-icon");
     setIcon(labelIcon, "tag");
     const labelLabel = labelBtn.createSpan();
-    labelLabel.textContent = "Labels (0)";
+    labelLabel.textContent = this.labels.length > 0 ? `Labels (${this.labels.length})` : "Labels (0)";
     
     labelBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      new Notice("Labels feature coming soon!");
+      this.showLabelPopover(labelBtn, labelLabel, labelsCache, TODOIST_COLORS);
     });
 
     // Link notes
@@ -151,14 +166,6 @@ export class QuickAddModal extends Modal {
     
     const chevronIcon = projectBtn.createSpan("obsidian-icon");
     setIcon(chevronIcon, "chevron-down");
-
-    const TODOIST_COLORS: Record<string, string> = {
-      berry_red: "#b8256f", red: "#db4035", orange: "#ff9933", yellow: "#fad000",
-      olive_green: "#afb83b", lime_green: "#7ecc49", green: "#299438", mint_green: "#6accbc",
-      teal: "#158fad", sky_blue: "#14aaf5", light_blue: "#96c3eb", blue: "#4073ff",
-      grape: "#884dff", violet: "#af38eb", lavender: "#eb96eb", magenta: "#e05194",
-      salmon: "#ff8d85", charcoal: "#808080", grey: "#b8b8b8", taupe: "#ccac93"
-    };
 
     let projectsCache: any[] = [];
     this.service.getProjects().then((projects) => {
@@ -282,6 +289,81 @@ export class QuickAddModal extends Modal {
 
     searchInput.addEventListener("input", (e) => {
       renderProjects((e.target as HTMLInputElement).value);
+    });
+
+    const closePopover = (e: MouseEvent) => {
+      if (!popover.contains(e.target as Node)) {
+        popover.remove();
+        btn.ownerDocument.removeEventListener("click", closePopover);
+      }
+    };
+    
+    setTimeout(() => {
+      btn.ownerDocument.addEventListener("click", closePopover);
+      searchInput.focus();
+    }, 0);
+  }
+
+  private showLabelPopover(btn: HTMLButtonElement, labelText: HTMLSpanElement, labels: any[], colors: Record<string, string>) {
+    if (document.body.querySelector(".task-label-menu")) {
+      document.body.querySelector(".task-label-menu")?.remove();
+      return;
+    }
+    document.querySelectorAll(".task-option-dialog").forEach((el) => el.remove());
+
+    const popover = btn.ownerDocument.body.createDiv("task-option-dialog task-label-menu task-project-menu");
+    const rect = btn.getBoundingClientRect();
+    popover.style.position = "fixed";
+    popover.style.top = `${rect.bottom + 4}px`;
+    popover.style.left = `${rect.left}px`;
+    popover.style.zIndex = "1000";
+
+    const searchContainer = popover.createDiv("search-filter-container");
+    const searchInput = searchContainer.createEl("input", { type: "text" });
+    searchInput.placeholder = "Type a label name";
+
+    popover.createEl("hr");
+
+    const listContainer = popover.createDiv("project-options-list");
+
+    const renderLabels = (filter: string) => {
+      listContainer.empty();
+
+      labels.forEach((l) => {
+        if (!l.name.toLowerCase().includes(filter.toLowerCase())) return;
+        
+        const item = listContainer.createDiv("project-option");
+        
+        const iconSpan = item.createSpan("obsidian-icon");
+        setIcon(iconSpan, "tag");
+        if (l.color && colors[l.color]) {
+          iconSpan.style.color = colors[l.color]!;
+        }
+
+        const labelName = item.createSpan();
+        labelName.textContent = l.name;
+        
+        if (this.labels.includes(l.name)) {
+           item.style.backgroundColor = "var(--background-modifier-active-hover)";
+        }
+
+        item.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (this.labels.includes(l.name)) {
+              this.labels = this.labels.filter(name => name !== l.name);
+          } else {
+              this.labels.push(l.name);
+          }
+          labelText.textContent = this.labels.length > 0 ? `Labels (${this.labels.length})` : "Labels (0)";
+          renderLabels(searchInput.value);
+        });
+      });
+    };
+
+    renderLabels("");
+
+    searchInput.addEventListener("input", (e) => {
+      renderLabels((e.target as HTMLInputElement).value);
     });
 
     const closePopover = (e: MouseEvent) => {
@@ -443,6 +525,10 @@ export class QuickAddModal extends Modal {
 
     if (this.projectId) {
       args.projectId = this.projectId;
+    }
+
+    if (this.labels && this.labels.length > 0) {
+      args.labels = this.labels;
     }
 
     try {
