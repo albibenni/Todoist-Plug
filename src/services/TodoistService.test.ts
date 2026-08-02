@@ -3,13 +3,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TodoistService } from "./TodoistService";
 
 describe("TodoistService", () => {
-  let mockApi: Record<string, ReturnType<typeof vi.fn>>;
+  let mockApi: {
+    quickAddTask: ReturnType<typeof vi.fn>;
+    getTasks: ReturnType<typeof vi.fn>;
+    getTasksByFilter: ReturnType<typeof vi.fn>;
+  };
   let service: TodoistService;
 
   beforeEach(() => {
     mockApi = {
       quickAddTask: vi.fn(),
       getTasks: vi.fn(),
+      getTasksByFilter: vi.fn(),
     };
     service = new TodoistService(mockApi as unknown as TodoistApi);
   });

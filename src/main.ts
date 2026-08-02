@@ -147,7 +147,7 @@ export default class TodoistPlugin extends Plugin {
       const customFetch = async (
         url: RequestInfo | URL,
         init?: RequestInit,
-      ): Promise<Response> => {
+      ) => {
         const headers: Record<string, string> = {};
         if (init?.headers) {
           new Headers(init.headers).forEach((value, key) => {
@@ -167,11 +167,14 @@ export default class TodoistPlugin extends Plugin {
         };
         const res: RequestUrlResponse = await requestUrl(req);
 
-        const responseBody = typeof res.text === "string" ? res.text : null;
-        return new Response(responseBody, {
+        return {
+          ok: res.status >= 200 && res.status < 300,
           status: res.status,
+          statusText: res.status >= 200 && res.status < 300 ? "OK" : "Error",
+          json: async () => res.json,
+          text: async () => (typeof res.text === "string" ? res.text : ""),
           headers: res.headers,
-        });
+        };
       };
 
       this.api = new TodoistApi(token, {

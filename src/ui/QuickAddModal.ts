@@ -1,7 +1,7 @@
 import type { AddTaskArgs, Label, Project } from "@doist/todoist-sdk";
 import { App, Menu, Modal, Notice, setIcon } from "obsidian";
 import type { TodoistService } from "../services/TodoistService";
-import type { TodoistPluginSettings } from "../settings";
+import type { TodoistPluginSettings } from "../types";
 
 export class QuickAddModal extends Modal {
   private taskTitle = "";
@@ -23,9 +23,7 @@ export class QuickAddModal extends Modal {
   ) {
     super(app);
     this.service = service;
-    this.settings = settings;
 
-    this.initialTitle = initialTitle;
     this.initialUrl = initialUrl;
 
     this.taskTitle = initialTitle;
