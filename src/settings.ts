@@ -24,14 +24,14 @@ export class TodoistSettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "Todoist Bridge Settings" });
+    containerEl.createEl("h2", { text: "Todoist Plug Settings" });
 
     new Setting(containerEl)
       .setName("API Token")
       .setDesc(
         "Your Todoist API token. This is saved securely to your OS keychain and does not sync to other devices.",
       )
-      .addText((text) =>
+      .addText((text) => {
         text
           .setPlaceholder("Enter your API token")
           .setValue(this.plugin.getApiToken() || "")
@@ -39,7 +39,8 @@ export class TodoistSettingTab extends PluginSettingTab {
             this.plugin.setApiToken(value);
             // Re-initialize the API client when the token changes
             this.plugin.initTodoistClient();
-          }),
-      );
+          });
+        text.inputEl.type = "password";
+      });
   }
 }
