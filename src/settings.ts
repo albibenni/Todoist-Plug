@@ -1,9 +1,13 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import TodoistPlugin from "./main";
 
+import { z } from 'zod';
+
 // We intentionally keep the settings interface empty of the token
 // because we don't want it saved to data.json.
-export interface TodoistPluginSettings {}
+export const TodoistPluginSettingsSchema = z.object({});
+
+export type TodoistPluginSettings = z.infer<typeof TodoistPluginSettingsSchema>;
 
 export const DEFAULT_SETTINGS: TodoistPluginSettings = {};
 
