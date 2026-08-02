@@ -1,4 +1,5 @@
-import { Notice, Plugin } from 'obsidian';
+import { Notice, Plugin, requestUrl } from 'obsidian';
+import type { RequestUrlParam, RequestUrlResponse } from 'obsidian';
 import { TodoistApi } from '@doist/todoist-sdk';
 import {
 	DEFAULT_SETTINGS,
@@ -109,9 +110,29 @@ export default class TodoistPlugin extends Plugin {
 	initTodoistClient() {
 		const token = this.getApiToken();
 		if (token) {
-			this.api = new TodoistApi(token);
+			// Wrap Obsidian's requestUrl to perfectly match standard fetch API
+			const customFetch = async (url: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+				const req: RequestUrlParam = {
+					url: url.toString(),
+					method: init?.method || 'GET',
+					headers: (init?.headers as Record<string, string>) || {},
+					body: init?.body as string | ArrayBuffer | undefined,
+					throw: false,
+				};
+				const res: RequestUrlResponse = await requestUrl(req);
+				
+				return {
+					ok: res.status >= 200 && res.status < 300,
+					status: res.status,
+					json: async () => res.json,
+					text: async () => res.text,
+					headers: new Headers(res.headers),
+				} as unknown as Response;
+			};
+
+			this.api = new TodoistApi(token, { customFetch });
 			this.todoistService = new TodoistService(this.api);
-			console.log('Todoist client initialized.');
+			console.log('Todoist client initialized with Obsidian requestUrl.');
 		} else {
 			this.api = null;
 			this.todoistService = null;

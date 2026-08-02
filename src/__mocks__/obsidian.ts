@@ -29,3 +29,13 @@ export class Modal {
 	open() {}
 	close() {}
 }
+
+export const requestUrl = async (params: any) => {
+	return {
+		status: 200,
+		headers: {},
+		json: {},
+		text: '',
+		arrayBuffer: new ArrayBuffer(0)
+	};
+};
