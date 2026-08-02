@@ -15,7 +15,9 @@ for (const arg of args) {
 }
 
 if (!["major", "minor", "patch"].includes(type)) {
-  console.error(`Invalid release type: ${type}. Please use major, minor, or patch.`);
+  console.error(
+    `Invalid release type: ${type}. Please use major, minor, or patch.`,
+  );
   process.exit(1);
 }
 

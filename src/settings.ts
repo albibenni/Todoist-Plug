@@ -1,23 +1,6 @@
 import { App, PluginSettingTab, Setting, setIcon } from "obsidian";
-import { z } from "zod";
-import TodoistPlugin from "./main";
-
-// We intentionally keep the settings interface empty of the token
-// because we don't want it saved to data.json.
-export const TodoistPluginSettingsSchema = z.object({
-  defaultProject: z.string().optional(),
-  defaultPriority: z.number().min(1).max(4).default(1),
-  defaultDate: z.string().default("today"),
-  defaultLabels: z.array(z.string()).default([]),
-});
-
-export type TodoistPluginSettings = z.infer<typeof TodoistPluginSettingsSchema>;
-
-export const DEFAULT_SETTINGS: TodoistPluginSettings = {
-  defaultPriority: 1,
-  defaultDate: "today",
-  defaultLabels: [],
-};
+import type TodoistPlugin from "./main";
+import { DEFAULT_SETTINGS } from "./types";
 
 export class TodoistSettingTab extends PluginSettingTab {
   plugin: TodoistPlugin;
@@ -38,29 +21,69 @@ export class TodoistSettingTab extends PluginSettingTab {
     const linksSetting = new Setting(containerEl)
       .setName("Links")
       .setDesc("Helpful links and resources for Todoist Plug.");
-      
-    linksSetting.addButton((btn) => btn.setButtonText("Docs").setIcon("book-open").setTooltip("View documentation").setCta().setClass("todoist-settings-btn").onClick(() => window.open("https://github.com/albibenni/Todoist-Plug#readme")));
-    linksSetting.addButton((btn) => btn.setButtonText("Feedback").setIcon("github").setTooltip("Report an issue").setCta().setClass("todoist-settings-btn").onClick(() => window.open("https://github.com/albibenni/Todoist-Plug/issues")));
-    linksSetting.addButton((btn) => btn.setButtonText("Donate").setIcon("coffee").setTooltip("Support development").setCta().setClass("todoist-settings-btn").onClick(() => window.open("https://www.paypal.com/donate/?cmd=_donations&business=JEUGAV9HY5YFU&currency_code=EUR&source=url")));
+
+    linksSetting.addButton((btn) => {
+      btn
+        .setButtonText("Docs")
+        .setTooltip("View documentation")
+        .setCta()
+        .setClass("todoist-settings-btn")
+        .onClick(() =>
+          window.open("https://github.com/albibenni/Todoist-Plug#readme"),
+        );
+      const icon = btn.buttonEl.createSpan();
+      setIcon(icon, "book-open");
+      btn.buttonEl.prepend(icon);
+    });
+
+    linksSetting.addButton((btn) => {
+      btn
+        .setButtonText("Feedback")
+        .setTooltip("Report an issue")
+        .setCta()
+        .setClass("todoist-settings-btn")
+        .onClick(() =>
+          window.open("https://github.com/albibenni/Todoist-Plug/issues"),
+        );
+      const icon = btn.buttonEl.createSpan();
+      setIcon(icon, "github");
+      btn.buttonEl.prepend(icon);
+    });
+
+    linksSetting.addButton((btn) => {
+      btn
+        .setButtonText("Donate")
+        .setTooltip("Support development")
+        .setCta()
+        .setClass("todoist-settings-btn")
+        .onClick(() =>
+          window.open(
+            "https://www.paypal.com/donate/?cmd=_donations&business=JEUGAV9HY5YFU&currency_code=EUR&source=url",
+          ),
+        );
+      const icon = btn.buttonEl.createSpan();
+      setIcon(icon, "coffee");
+      btn.buttonEl.prepend(icon);
+    });
 
     const apiSetting = new Setting(containerEl)
       .setName("API token")
       .setDesc("The Todoist API token to use when fetching tasks");
-    
+
     if (this.plugin.getApiToken()) {
-        const checkIcon = apiSetting.controlEl.createSpan("todoist-success-icon");
-        setIcon(checkIcon, "check-circle");
+      const checkIcon = apiSetting.controlEl.createSpan("todoist-success-icon");
+      setIcon(checkIcon, "check-circle");
     }
 
     apiSetting.addText((text) => {
-        text
-          .setPlaceholder("Enter your API token")
-          .setValue(this.plugin.getApiToken() || "")
-          .onChange((value) => {
-            this.plugin.setApiToken(value);
-            this.plugin.initTodoistClient();
-          });
-        text.inputEl.type = "password";
+      text
+        .setPlaceholder("Enter your API token")
+        .setValue(this.plugin.getApiToken() || "")
+        .onChange((value) => {
+          this.plugin.setApiToken(value);
+          this.plugin.initTodoistClient();
+        });
+      text.inputEl.type = "password";
     });
 
     containerEl.createEl("h3", { text: "Defaults" }).style.marginTop = "2em";

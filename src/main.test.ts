@@ -10,8 +10,12 @@ vi.mock("@doist/todoist-sdk", () => {
   };
 });
 
+import type { TodoistApi } from "@doist/todoist-sdk";
+import type { App, PluginManifest } from "obsidian";
+import type { TodoistService } from "./services/TodoistService";
+
 describe("TodoistPlugin Token Logic", () => {
-  let appMock: any;
+  let appMock: App;
   let plugin: TodoistPlugin;
 
   beforeEach(() => {
@@ -20,13 +24,14 @@ describe("TodoistPlugin Token Logic", () => {
         getSecret: vi.fn(),
         setSecret: vi.fn(),
       },
-    };
+    } as unknown as App;
     // Instantiate the plugin with our mocked app
-    plugin = new TodoistPlugin(appMock, {} as any);
+    plugin = new TodoistPlugin(appMock, {} as PluginManifest);
   });
 
   describe("getApiToken / setApiToken", () => {
     it("should securely retrieve the token from app.secretStorage", () => {
+      // @ts-ignore
       appMock.secretStorage.getSecret.mockReturnValue("test-token");
 
       const token = plugin.getApiToken();
@@ -49,6 +54,7 @@ describe("TodoistPlugin Token Logic", () => {
 
   describe("initTodoistClient", () => {
     it("should initialize clients if token exists", () => {
+      // @ts-ignore
       appMock.secretStorage.getSecret.mockReturnValue("test-token");
 
       plugin.initTodoistClient();
@@ -58,11 +64,12 @@ describe("TodoistPlugin Token Logic", () => {
     });
 
     it("should set clients to null if no token exists", () => {
+      // @ts-ignore
       appMock.secretStorage.getSecret.mockReturnValue(null);
 
       // Pre-fill with fake data to verify it gets wiped
-      plugin.api = {} as any;
-      plugin.todoistService = {} as any;
+      plugin.api = {} as TodoistApi;
+      plugin.todoistService = {} as TodoistService;
 
       plugin.initTodoistClient();
 

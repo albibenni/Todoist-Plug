@@ -1,11 +1,17 @@
 export class Plugin {
-  app: any;
-  constructor(app: any, manifest: any) {
+  app: unknown;
+  constructor(app: unknown, manifest: unknown) {
     this.app = app;
   }
-  addSettingTab() {}
-  addCommand() {}
-  registerMarkdownCodeBlockProcessor() {}
+  addSettingTab() {
+    /* mock */
+  }
+  addCommand() {
+    /* mock */
+  }
+  registerMarkdownCodeBlockProcessor() {
+    /* mock */
+  }
   loadData() {
     return Promise.resolve({});
   }
@@ -17,7 +23,9 @@ export class Plugin {
 export class Notice {}
 
 export class PluginSettingTab {
-  constructor(app: any, plugin: any) {}
+  constructor(app: unknown, plugin: unknown) {
+    /* mock */
+  }
 }
 
 export class Setting {
@@ -34,20 +42,24 @@ export class Setting {
 
 export class App {}
 export class Modal {
-  contentEl: any;
-  constructor(app: any) {
+  contentEl: HTMLElement;
+  constructor(app: unknown) {
     this.contentEl = document.createElement("div");
   }
-  open() {}
-  close() {}
+  open() {
+    /* mock */
+  }
+  close() {
+    /* mock */
+  }
 }
 
-export const requestUrl = async (params: any) => {
-  return {
+export const requestUrl = (params: unknown) => {
+  return Promise.resolve({
     status: 200,
     headers: {},
     json: {},
     text: "",
     arrayBuffer: new ArrayBuffer(0),
-  };
+  });
 };

@@ -36,12 +36,18 @@
   justify-content: space-between;
 }
 
-.task-creation-modal-root .task-creation-selectors .task-creation-selectors-group {
+.task-creation-modal-root
+  .task-creation-selectors
+  .task-creation-selectors-group {
   display: flex;
   align-items: center;
 }
 
-.task-creation-modal-root .task-creation-selectors .task-creation-selectors-group > * + * {
+.task-creation-modal-root
+  .task-creation-selectors
+  .task-creation-selectors-group
+  > *
+  + * {
   margin-left: 0.5em;
 }
 
@@ -103,11 +109,18 @@
   display: flex;
 }
 
-.task-creation-modal-root .task-creation-controls .task-creation-action > * + * {
+.task-creation-modal-root
+  .task-creation-controls
+  .task-creation-action
+  > *
+  + * {
   margin-left: 1em;
 }
 
-.is-mobile .task-creation-modal-root .task-creation-controls .task-creation-action {
+.is-mobile
+  .task-creation-modal-root
+  .task-creation-controls
+  .task-creation-action {
   justify-content: end;
 }
 
@@ -349,6 +362,9 @@
   background-color: #e4af0a !important;
   color: var(--text-on-accent) !important;
   margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .todoist-success-icon {

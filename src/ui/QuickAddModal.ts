@@ -1,5 +1,5 @@
-import type { AddTaskArgs } from "@doist/todoist-sdk";
-import { App, Modal, Notice, setIcon, Menu } from "obsidian";
+import type { AddTaskArgs, Label, Project } from "@doist/todoist-sdk";
+import { App, Menu, Modal, Notice, setIcon } from "obsidian";
 import type { TodoistService } from "../services/TodoistService";
 import type { TodoistPluginSettings } from "../settings";
 
@@ -12,8 +12,6 @@ export class QuickAddModal extends Modal {
   private labels: string[] = [];
 
   private service: TodoistService;
-  private settings: TodoistPluginSettings;
-  private initialTitle: string;
   private initialUrl: string;
 
   constructor(
@@ -44,14 +42,29 @@ export class QuickAddModal extends Modal {
     const root = contentEl.createDiv("task-creation-modal-root");
 
     const TODOIST_COLORS: Record<string, string> = {
-      berry_red: "#b8256f", red: "#db4035", orange: "#ff9933", yellow: "#fad000",
-      olive_green: "#afb83b", lime_green: "#7ecc49", green: "#299438", mint_green: "#6accbc",
-      teal: "#158fad", sky_blue: "#14aaf5", light_blue: "#96c3eb", blue: "#4073ff",
-      grape: "#884dff", violet: "#af38eb", lavender: "#eb96eb", magenta: "#e05194",
-      salmon: "#ff8d85", charcoal: "#808080", grey: "#b8b8b8", taupe: "#ccac93"
+      berry_red: "#b8256f",
+      red: "#db4035",
+      orange: "#ff9933",
+      yellow: "#fad000",
+      olive_green: "#afb83b",
+      lime_green: "#7ecc49",
+      green: "#299438",
+      mint_green: "#6accbc",
+      teal: "#158fad",
+      sky_blue: "#14aaf5",
+      light_blue: "#96c3eb",
+      blue: "#4073ff",
+      grape: "#884dff",
+      violet: "#af38eb",
+      lavender: "#eb96eb",
+      magenta: "#e05194",
+      salmon: "#ff8d85",
+      charcoal: "#808080",
+      grey: "#b8b8b8",
+      taupe: "#ccac93",
     };
 
-    let labelsCache: any[] = [];
+    let labelsCache: Label[] = [];
     this.service.getLabels().then((labels) => {
       labelsCache = labels;
     });
@@ -88,10 +101,12 @@ export class QuickAddModal extends Modal {
     const dateBtn = dateContainer.createEl("button");
     const dateBtnIcon = dateBtn.createSpan("obsidian-icon");
     setIcon(dateBtnIcon, "calendar");
-    const dateLabel = this.dueDate ? this.dueDate.charAt(0).toUpperCase() + this.dueDate.slice(1) : "Today";
+    const dateLabel = this.dueDate
+      ? this.dueDate.charAt(0).toUpperCase() + this.dueDate.slice(1)
+      : "Today";
     const dateLabelSpan = dateBtn.createSpan("date-label");
     dateLabelSpan.textContent = dateLabel;
-    
+
     dateBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       this.showDatePopover(dateContainer, dateBtn);
@@ -108,13 +123,14 @@ export class QuickAddModal extends Modal {
     const priorityIcon = priorityBtn.createSpan("obsidian-icon");
     setIcon(priorityIcon, "flag");
     const priorityLabel = priorityBtn.createSpan();
-    const currentPri = priorities.find(p => p.val === this.priority)?.text || "Priority 4";
+    const currentPri =
+      priorities.find((p) => p.val === this.priority)?.text || "Priority 4";
     priorityLabel.textContent = currentPri;
 
     priorityBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       const menu = new Menu();
-      priorities.forEach(p => {
+      priorities.forEach((p) => {
         menu.addItem((item) => {
           item
             .setTitle(p.text)
@@ -133,8 +149,9 @@ export class QuickAddModal extends Modal {
     const labelIcon = labelBtn.createSpan("obsidian-icon");
     setIcon(labelIcon, "tag");
     const labelLabel = labelBtn.createSpan();
-    labelLabel.textContent = this.labels.length > 0 ? `Labels (${this.labels.length})` : "Labels (0)";
-    
+    labelLabel.textContent =
+      this.labels.length > 0 ? `Labels (${this.labels.length})` : "Labels (0)";
+
     labelBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       this.showLabelPopover(labelBtn, labelLabel, labelsCache, TODOIST_COLORS);
@@ -157,19 +174,26 @@ export class QuickAddModal extends Modal {
     const projectBtn = projectDiv.createEl("button");
     projectBtn.addClass("project-selector");
     projectBtn.setAttribute("aria-label", "Set project");
-    
-    const projectIcon = projectBtn.createSpan("obsidian-icon todoist-project-icon");
+
+    const projectIcon = projectBtn.createSpan(
+      "obsidian-icon todoist-project-icon",
+    );
     setIcon(projectIcon, this.projectId ? "hash" : "inbox");
-    
+
     const projectLabel = projectBtn.createSpan();
     projectLabel.textContent = "Inbox";
-    
+
     const chevronIcon = projectBtn.createSpan("obsidian-icon");
     setIcon(chevronIcon, "chevron-down");
 
-    let projectsCache: any[] = [];
+    let projectsCache: Project[] = [];
     this.service.getProjects().then((projects) => {
-      projectsCache = projects.filter(p => p.name !== "Inbox" && !(p as any).inboxProject && !(p as any).isInboxProject);
+      projectsCache = projects.filter(
+        (p) =>
+          p.name !== "Inbox" &&
+          !(p as unknown as { inboxProject?: boolean }).inboxProject &&
+          !(p as unknown as { isInboxProject?: boolean }).isInboxProject,
+      );
       const proj = projects.find((p) => p.id === this.projectId);
       if (proj) {
         projectLabel.textContent = proj.name;
@@ -181,7 +205,13 @@ export class QuickAddModal extends Modal {
 
     projectBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      this.showProjectPopover(projectBtn, projectLabel, projectIcon, projectsCache, TODOIST_COLORS);
+      this.showProjectPopover(
+        projectBtn,
+        projectLabel,
+        projectIcon,
+        projectsCache,
+        TODOIST_COLORS,
+      );
     });
 
     const actionGrp = controls.createDiv("task-creation-action");
@@ -221,14 +251,24 @@ export class QuickAddModal extends Modal {
     textarea.style.height = textarea.scrollHeight + "px";
   }
 
-  private showProjectPopover(btn: HTMLButtonElement, label: HTMLSpanElement, iconElem: HTMLSpanElement, projects: any[], colors: Record<string, string>) {
+  private showProjectPopover(
+    btn: HTMLButtonElement,
+    label: HTMLSpanElement,
+    iconElem: HTMLSpanElement,
+    projects: Project[],
+    colors: Record<string, string>,
+  ) {
     if (document.body.querySelector(".task-project-menu")) {
       document.body.querySelector(".task-project-menu")?.remove();
       return;
     }
-    document.querySelectorAll(".task-option-dialog").forEach((el) => el.remove());
+    document
+      .querySelectorAll(".task-option-dialog")
+      .forEach((el) => el.remove());
 
-    const popover = btn.ownerDocument.body.createDiv("task-option-dialog task-project-menu");
+    const popover = btn.ownerDocument.body.createDiv(
+      "task-option-dialog task-project-menu",
+    );
     const rect = btn.getBoundingClientRect();
     popover.style.position = "fixed";
     popover.style.top = `${rect.bottom + 4}px`;
@@ -245,7 +285,7 @@ export class QuickAddModal extends Modal {
 
     const renderProjects = (filter: string) => {
       listContainer.empty();
-      
+
       if ("inbox".includes(filter.toLowerCase())) {
         const inboxItem = listContainer.createDiv("project-option");
         const inboxIconSpan = inboxItem.createSpan("obsidian-icon");
@@ -262,7 +302,7 @@ export class QuickAddModal extends Modal {
 
       projects.forEach((p) => {
         if (!p.name.toLowerCase().includes(filter.toLowerCase())) return;
-        
+
         const item = listContainer.createDiv("project-option");
         const iconSpan = item.createSpan("obsidian-icon");
         setIcon(iconSpan, "hash");
@@ -270,15 +310,15 @@ export class QuickAddModal extends Modal {
           iconSpan.style.color = colors[p.color]!;
         }
         item.createSpan().textContent = p.name;
-        
+
         item.addEventListener("click", () => {
           this.projectId = p.id;
           label.textContent = p.name;
           setIcon(iconElem, "hash");
           if (p.color && colors[p.color]) {
-              iconElem.style.color = colors[p.color]!;
+            iconElem.style.color = colors[p.color]!;
           } else {
-              iconElem.style.color = "";
+            iconElem.style.color = "";
           }
           popover.remove();
         });
@@ -297,21 +337,30 @@ export class QuickAddModal extends Modal {
         btn.ownerDocument.removeEventListener("click", closePopover);
       }
     };
-    
+
     setTimeout(() => {
       btn.ownerDocument.addEventListener("click", closePopover);
       searchInput.focus();
     }, 0);
   }
 
-  private showLabelPopover(btn: HTMLButtonElement, labelText: HTMLSpanElement, labels: any[], colors: Record<string, string>) {
+  private showLabelPopover(
+    btn: HTMLButtonElement,
+    labelText: HTMLSpanElement,
+    labels: Label[],
+    colors: Record<string, string>,
+  ) {
     if (document.body.querySelector(".task-label-menu")) {
       document.body.querySelector(".task-label-menu")?.remove();
       return;
     }
-    document.querySelectorAll(".task-option-dialog").forEach((el) => el.remove());
+    document
+      .querySelectorAll(".task-option-dialog")
+      .forEach((el) => el.remove());
 
-    const popover = btn.ownerDocument.body.createDiv("task-option-dialog task-label-menu task-project-menu");
+    const popover = btn.ownerDocument.body.createDiv(
+      "task-option-dialog task-label-menu task-project-menu",
+    );
     const rect = btn.getBoundingClientRect();
     popover.style.position = "fixed";
     popover.style.top = `${rect.bottom + 4}px`;
@@ -331,9 +380,9 @@ export class QuickAddModal extends Modal {
 
       labels.forEach((l) => {
         if (!l.name.toLowerCase().includes(filter.toLowerCase())) return;
-        
+
         const item = listContainer.createDiv("project-option");
-        
+
         const iconSpan = item.createSpan("obsidian-icon");
         setIcon(iconSpan, "tag");
         if (l.color && colors[l.color]) {
@@ -342,19 +391,23 @@ export class QuickAddModal extends Modal {
 
         const labelName = item.createSpan();
         labelName.textContent = l.name;
-        
+
         if (this.labels.includes(l.name)) {
-           item.style.backgroundColor = "var(--background-modifier-active-hover)";
+          item.style.backgroundColor =
+            "var(--background-modifier-active-hover)";
         }
 
         item.addEventListener("click", (e) => {
           e.stopPropagation();
           if (this.labels.includes(l.name)) {
-              this.labels = this.labels.filter(name => name !== l.name);
+            this.labels = this.labels.filter((name) => name !== l.name);
           } else {
-              this.labels.push(l.name);
+            this.labels.push(l.name);
           }
-          labelText.textContent = this.labels.length > 0 ? `Labels (${this.labels.length})` : "Labels (0)";
+          labelText.textContent =
+            this.labels.length > 0
+              ? `Labels (${this.labels.length})`
+              : "Labels (0)";
           renderLabels(searchInput.value);
         });
       });
@@ -372,7 +425,7 @@ export class QuickAddModal extends Modal {
         btn.ownerDocument.removeEventListener("click", closePopover);
       }
     };
-    
+
     setTimeout(() => {
       btn.ownerDocument.addEventListener("click", closePopover);
       searchInput.focus();
@@ -384,16 +437,25 @@ export class QuickAddModal extends Modal {
       container.querySelector(".task-date-menu")?.remove();
       return;
     }
-    document.querySelectorAll(".task-option-dialog").forEach((el) => el.remove());
+    document
+      .querySelectorAll(".task-option-dialog")
+      .forEach((el) => el.remove());
 
-    const popover = btn.ownerDocument.body.createDiv("task-option-dialog task-date-menu");
+    const popover = btn.ownerDocument.body.createDiv(
+      "task-option-dialog task-date-menu",
+    );
     const rect = btn.getBoundingClientRect();
     popover.style.position = "fixed";
     popover.style.top = `${rect.bottom + 4}px`;
     popover.style.left = `${rect.left}px`;
     popover.style.zIndex = "1000";
 
-    const addSuggestion = (iconId: string, text: string, dayText: string, val: string) => {
+    const addSuggestion = (
+      iconId: string,
+      text: string,
+      dayText: string,
+      val: string,
+    ) => {
       const item = popover.createDiv("date-suggestion-elem");
       const label = item.createDiv("date-suggestion-label");
       const iconSpan = label.createSpan("obsidian-icon");
@@ -416,7 +478,12 @@ export class QuickAddModal extends Modal {
 
     addSuggestion("calendar", "Today", dayNames[today.getDay()]!, "today");
     addSuggestion("sun", "Tomorrow", dayNames[tomorrow.getDay()]!, "tomorrow");
-    addSuggestion("calendar-clock", "Next week", dayNames[nextWeek.getDay()]!, "next week");
+    addSuggestion(
+      "calendar-clock",
+      "Next week",
+      dayNames[nextWeek.getDay()]!,
+      "next week",
+    );
     addSuggestion("ban", "No date", "", "");
 
     popover.createEl("hr");
@@ -424,43 +491,68 @@ export class QuickAddModal extends Modal {
     const datePicker = popover.createDiv("date-picker");
     const header = datePicker.createEl("header");
     const monthLabel = header.createEl("h4");
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    let currentDisplayMonth = new Date();
-    
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+    const currentDisplayMonth = new Date();
+
     const controls = header.createDiv("date-picker-controls");
     const prevBtn = controls.createEl("button");
     prevBtn.textContent = "◀";
     const nextBtn = controls.createEl("button");
     nextBtn.textContent = "▶";
-    
+
     const grid = datePicker.createDiv("calendar-grid");
-    
+
     const renderCalendar = (monthDate: Date) => {
       grid.empty();
       monthLabel.textContent = `${monthNames[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
-      
+
       ["S", "M", "T", "W", "T", "F", "S"].forEach((d) => {
         const dayHeader = grid.createDiv("calendar-day-header");
         dayHeader.textContent = d;
       });
-      
-      const firstDay = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
-      const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+
+      const firstDay = new Date(
+        monthDate.getFullYear(),
+        monthDate.getMonth(),
+        1,
+      );
+      const lastDay = new Date(
+        monthDate.getFullYear(),
+        monthDate.getMonth() + 1,
+        0,
+      );
       const startPad = firstDay.getDay();
       const totalDays = lastDay.getDate();
-      
+
       for (let i = 0; i < startPad; i++) {
         const cell = grid.createDiv("calendar-cell");
         cell.setAttribute("data-outside-month", "true");
       }
-      
+
       for (let i = 1; i <= totalDays; i++) {
         const cell = grid.createDiv("calendar-cell");
         cell.textContent = i.toString();
-        
+
         cell.addEventListener("click", () => {
-          const selDate = new Date(monthDate.getFullYear(), monthDate.getMonth(), i);
-          this.dueDate = `${selDate.getFullYear()}-${String(selDate.getMonth()+1).padStart(2, "0")}-${String(selDate.getDate()).padStart(2, "0")}`;
+          const selDate = new Date(
+            monthDate.getFullYear(),
+            monthDate.getMonth(),
+            i,
+          );
+          this.dueDate = `${selDate.getFullYear()}-${String(selDate.getMonth() + 1).padStart(2, "0")}-${String(selDate.getDate()).padStart(2, "0")}`;
           btn.querySelector(".date-label")!.textContent = this.dueDate;
           popover.remove();
         });
@@ -480,7 +572,7 @@ export class QuickAddModal extends Modal {
       currentDisplayMonth.setMonth(currentDisplayMonth.getMonth() + 1);
       renderCalendar(currentDisplayMonth);
     });
-    
+
     popover.createEl("hr");
     const timeContainer = popover.createDiv("time-picker-container");
     const timeBtn = timeContainer.createEl("button");
@@ -498,7 +590,7 @@ export class QuickAddModal extends Modal {
         btn.ownerDocument.removeEventListener("click", closePopover);
       }
     };
-    
+
     setTimeout(() => {
       btn.ownerDocument.addEventListener("click", closePopover);
     }, 0);
@@ -536,7 +628,7 @@ export class QuickAddModal extends Modal {
       await this.service.addTask(args);
       new Notice(`Successfully added: "${this.taskTitle}"`);
       this.close();
-    } catch (error) {
+    } catch (_error) {
       new Notice("Failed to add task. Check your connection and token.");
     }
   }

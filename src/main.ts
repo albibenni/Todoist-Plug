@@ -1,13 +1,13 @@
 import { TodoistApi } from "@doist/todoist-sdk";
 import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
-import { Notice, Plugin, requestUrl, MarkdownView } from "obsidian";
+import { MarkdownView, Notice, Plugin, requestUrl } from "obsidian";
 import { TodoistService } from "./services/TodoistService";
+import { TodoistSettingTab } from "./settings";
 import {
   DEFAULT_SETTINGS,
   type TodoistPluginSettings,
   TodoistPluginSettingsSchema,
-  TodoistSettingTab,
-} from "./settings";
+} from "./types";
 import { QuickAddModal } from "./ui/QuickAddModal";
 import { TaskRenderer } from "./ui/TaskRenderer";
 
@@ -41,7 +41,7 @@ export default class TodoistPlugin extends Plugin {
 
         try {
           new Notice("Fetching projects from Todoist...");
-          const projects = await this.api.getProjects();
+          const _projects = await this.api.getProjects();
           new Notice(`Successfully connected!`);
         } catch (error) {
           console.error("Error connecting to Todoist:", error);
@@ -117,7 +117,7 @@ export default class TodoistPlugin extends Plugin {
           loadingEl.remove();
           // Render the HTML
           TaskRenderer.renderHTML(tasks, el);
-        } catch (error) {
+        } catch (_error) {
           loadingEl.remove();
           const p = document.createElement("p");
           p.textContent = "Failed to load tasks.";
@@ -148,25 +148,35 @@ export default class TodoistPlugin extends Plugin {
         url: RequestInfo | URL,
         init?: RequestInit,
       ): Promise<Response> => {
+        const headers: Record<string, string> = {};
+        if (init?.headers) {
+          new Headers(init.headers).forEach((value, key) => {
+            headers[key] = value;
+          });
+        }
+
         const req: RequestUrlParam = {
           url: url.toString(),
           method: init?.method || "GET",
-          headers: (init?.headers as Record<string, string>) || {},
-          body: init?.body as string | ArrayBuffer | undefined,
+          headers,
+          body:
+            typeof init?.body === "string" || init?.body instanceof ArrayBuffer
+              ? init.body
+              : undefined,
           throw: false,
         };
         const res: RequestUrlResponse = await requestUrl(req);
 
-        return {
-          ok: res.status >= 200 && res.status < 300,
+        const responseBody = typeof res.text === "string" ? res.text : null;
+        return new Response(responseBody, {
           status: res.status,
-          json: async () => res.json,
-          text: async () => res.text,
-          headers: new Headers(res.headers) as any,
-        } as unknown as Response;
+          headers: res.headers,
+        });
       };
 
-      this.api = new TodoistApi(token, { customFetch: customFetch as any });
+      this.api = new TodoistApi(token, {
+        customFetch: customFetch,
+      });
       this.todoistService = new TodoistService(this.api);
       console.log("Todoist client initialized with Obsidian requestUrl.");
     } else {

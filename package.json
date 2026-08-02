@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "biome check .",
-    "indent:write": "biome format --write ."
+    "indent:write": "biome format --write .",
+    "prepare": "husky"
   },
   "keywords": [],
   "license": "MIT",
@@ -21,6 +22,7 @@
     "@types/node": "^22.15.17",
     "@vitest/coverage-v8": "^4.1.10",
     "esbuild": "0.25.5",
+    "husky": "^9.1.7",
     "jsdom": "^30.0.1",
     "obsidian": "latest",
     "typescript": "^5.8.3",

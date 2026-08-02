@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TodoistService } from "./TodoistService";
 
 describe("TodoistService", () => {
-  let mockApi: any;
+  let mockApi: Record<string, ReturnType<typeof vi.fn>>;
   let service: TodoistService;
 
   beforeEach(() => {

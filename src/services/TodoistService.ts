@@ -1,10 +1,23 @@
 import type {
   AddTaskArgs,
+  Label,
   Project,
   Task,
-  Label,
   TodoistApi,
 } from "@doist/todoist-sdk";
+import { TodoistResponseSchema } from "../types";
+
+function extractArray<T>(res: unknown): T[] {
+  const parsed = TodoistResponseSchema.safeParse(res);
+  if (parsed.success) {
+    if ("results" in parsed.data) {
+      return parsed.data.results as T[];
+    }
+    return parsed.data as T[];
+  }
+  // Fallback if the SDK changes shape entirely
+  return [];
+}
 
 export class TodoistService {
   constructor(private api: TodoistApi) {}
@@ -25,9 +38,11 @@ export class TodoistService {
   async fetchTasks(filter?: string): Promise<Task[]> {
     try {
       if (filter) {
-        return (await this.api.getTasksByFilter({ query: filter })).results;
+        return extractArray<Task>(
+          await this.api.getTasksByFilter({ query: filter }),
+        );
       }
-      return (await this.api.getTasks()).results;
+      return extractArray<Task>(await this.api.getTasks());
     } catch (error) {
       console.error("Failed to fetch tasks:", error);
       throw new Error("Failed to fetch tasks from Todoist");
@@ -45,8 +60,7 @@ export class TodoistService {
 
   async getProjects(): Promise<Project[]> {
     try {
-      const res = await this.api.getProjects();
-      return (res as any).results || res;
+      return extractArray<Project>(await this.api.getProjects());
     } catch (error) {
       console.error("Failed to get projects:", error);
       throw new Error("Failed to get projects from Todoist");
@@ -55,8 +69,7 @@ export class TodoistService {
 
   async getLabels(): Promise<Label[]> {
     try {
-      const res = await this.api.getLabels();
-      return (res as any).results || res;
+      return extractArray<Label>(await this.api.getLabels());
     } catch (error) {
       console.error("Failed to get labels:", error);
       throw new Error("Failed to get labels from Todoist");
