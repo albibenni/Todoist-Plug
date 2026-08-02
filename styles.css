@@ -21,8 +21,8 @@
 }
 
 .task-creation-modal-root .task-name textarea {
-  font-size: var(--font-ui-large);
-  font-weight: var(--font-semibold);
+  font-size: 1.5em; /* Match larger text from screenshot */
+  font-weight: var(--font-bold);
 }
 
 .task-creation-modal-root .task-description textarea {
@@ -48,6 +48,7 @@
 /* Fallback for select/input to match the button look */
 .task-creation-modal-root .task-creation-selectors input,
 .task-creation-modal-root .task-creation-selectors select,
+.task-creation-modal-root .task-creation-selectors button,
 .task-creation-modal-root select.project-selector {
   box-shadow: none;
   background-color: unset;
@@ -57,12 +58,20 @@
   padding: 4px 8px;
   cursor: pointer;
   outline: none;
+  display: flex;
+  align-items: center;
+}
+
+.task-creation-modal-root .task-creation-selectors button > * + * {
+  margin-left: 0.5em;
 }
 
 .task-creation-modal-root .task-creation-selectors input:hover,
 .task-creation-modal-root .task-creation-selectors input:focus,
 .task-creation-modal-root .task-creation-selectors select:hover,
 .task-creation-modal-root .task-creation-selectors select:focus,
+.task-creation-modal-root .task-creation-selectors button:hover,
+.task-creation-modal-root .task-creation-selectors button:focus,
 .task-creation-modal-root select.project-selector:hover,
 .task-creation-modal-root select.project-selector:focus {
   border: 1px solid var(--interactive-accent);
@@ -128,8 +137,8 @@
 .task-option-dialog {
   background-color: var(--modal-background);
   border: var(--modal-border-width) solid var(--modal-border-color);
-  border-radius: 4px;
-  min-width: 200px;
+  border-radius: var(--radius-m);
+  min-width: 240px;
   box-shadow: var(--shadow-s);
   padding: 0.5em 0;
   position: absolute;
@@ -137,7 +146,7 @@
 }
 
 .task-date-menu .date-suggestion-elem {
-  padding: 8px 1em;
+  padding: 10px 1.5em;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -156,7 +165,7 @@
 }
 
 .task-date-menu .date-suggestion-elem .date-suggestion-label .obsidian-icon {
-  margin-right: 1em;
+  margin-right: 12px;
 }
 
 .task-date-menu .date-suggestion-elem .date-suggestion-day {
@@ -182,8 +191,9 @@
 
 .task-date-menu .date-picker h4 {
   margin-left: 0.5em;
-  font-size: var(--font-small);
-  font-weight: var(--font-semibold);
+  font-size: var(--font-normal);
+  font-weight: var(--font-bold);
+  color: var(--text-accent);
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -217,15 +227,15 @@
 .task-date-menu .date-picker .calendar-grid .calendar-day-header {
   text-align: center;
   font-weight: bold;
-  font-size: 0.8em;
-  color: var(--text-muted);
-  padding-bottom: 4px;
+  font-size: var(--font-small);
+  color: var(--text-normal);
+  padding-bottom: 8px;
 }
 
 .task-date-menu .date-picker .calendar-cell {
   text-align: center;
-  padding: 6px;
-  border-radius: 2px;
+  padding: 8px 6px;
+  border-radius: 4px;
   cursor: pointer;
 }
 
