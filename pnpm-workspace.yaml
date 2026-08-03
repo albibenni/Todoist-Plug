@@ -1,6 +1,1 @@
-packages:
-  - "."
-
-settings:
-  allowBuilds:
-    - esbuild
+onlyBuiltDependencies: '["esbuild"]'
