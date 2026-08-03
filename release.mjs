@@ -25,7 +25,9 @@ console.log(`Releasing new ${type} version...`);
 try {
   // Use pnpm version to bump package.json
   // This automatically triggers the "version" script which runs version-bump.mjs
-  execSync(`pnpm version ${type}`, { stdio: "inherit" });
+  execSync(`pnpm version ${type} --tag-version-prefix=""`, {
+    stdio: "inherit",
+  });
   console.log(`✅ Successfully bumped ${type} version!`);
 
   console.log("Pushing commits and tags to GitHub...");
