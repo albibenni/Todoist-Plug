@@ -124,25 +124,6 @@
   justify-content: end;
 }
 
-.task-creation-modal-root .add-task-button-group {
-  display: flex;
-  gap: 0;
-}
-
-.task-creation-modal-root .add-task-button-group .add-task-primary {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  flex: 1;
-}
-
-.task-creation-modal-root .add-task-button-group .add-task-dropdown {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  border-left: 1px solid var(--background-modifier-border);
-  padding: 0 8px;
-  min-width: auto;
-}
-
 .task-creation-modal-root hr {
   margin: 1em 0;
   border-color: var(--color-base-25);

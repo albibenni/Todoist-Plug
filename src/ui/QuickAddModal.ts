@@ -263,16 +263,10 @@ export class QuickAddModal extends Modal {
     cancelBtn.textContent = "Cancel";
     cancelBtn.addEventListener("click", () => this.close());
 
-    const addBtnGrp = actionGrp.createDiv("add-task-button-group");
-    const addBtn = addBtnGrp.createEl("button");
-    addBtn.addClasses(["mod-cta", "add-task-primary"]);
+    const addBtn = actionGrp.createEl("button");
+    addBtn.addClass("mod-cta");
     addBtn.textContent = "Add task";
     addBtn.addEventListener("click", () => void this.submitTask());
-
-    const dropBtn = addBtnGrp.createEl("button");
-    dropBtn.addClasses(["mod-cta", "add-task-dropdown"]);
-    const dropBtnIcon = dropBtn.createSpan("obsidian-icon");
-    setIcon(dropBtnIcon, "chevron-down");
 
     // Focus and resize initially
     window.setTimeout(() => {
