@@ -6,6 +6,7 @@ import {
   setIcon,
 } from "obsidian";
 import type TodoistPlugin from "./main";
+import { ApiTokenModal } from "./ui/ApiTokenModal";
 
 export class TodoistSettingTab extends PluginSettingTab {
   plugin: TodoistPlugin;
@@ -78,18 +79,15 @@ export class TodoistSettingTab extends PluginSettingTab {
       setIcon(checkIcon, "check-circle");
     }
 
-    apiSetting.addText((text) => {
-      text
-        .setPlaceholder("Enter your API token")
-        .setValue(this.plugin.getApiToken() || "")
-        .onChange((value) => {
-          this.plugin.setApiToken(value);
-          this.plugin.initTodoistClient();
+    apiSetting.addButton((btn) => {
+      btn
+        .setButtonText(this.plugin.getApiToken() ? "Update Token" : "Set Token")
+        .onClick(() => {
+          new ApiTokenModal(this.plugin.app, this.plugin).open();
         });
-      text.inputEl.type = "password";
     });
 
-    new Setting(containerEl).setName("Defaults").setHeading();
+    new Setting(containerEl).setName("Default Settings").setHeading();
 
     const projectSetting = new Setting(containerEl)
       .setName("Default Project")

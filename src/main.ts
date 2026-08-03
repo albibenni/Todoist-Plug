@@ -14,6 +14,7 @@ import {
   type TodoistPluginSettings,
   TodoistPluginSettingsSchema,
 } from "./types";
+import { ApiTokenModal } from "./ui/ApiTokenModal";
 import { QuickAddModal } from "./ui/QuickAddModal";
 import { TaskRenderer } from "./ui/TaskRenderer";
 import { TODOIST_VIEW_TYPE, TodoistSidebarView } from "./ui/TodoistSidebarView";
@@ -33,6 +34,15 @@ export default class TodoistPlugin extends Plugin {
 
     // Initialize Todoist client
     this.initTodoistClient();
+
+    // Command to setup API token
+    this.addCommand({
+      id: "setup-api-token",
+      name: "Setup API token",
+      callback: () => {
+        new ApiTokenModal(this.app, this).open();
+      },
+    });
 
     // Add a command to verify the connection
     this.addCommand({
@@ -259,7 +269,7 @@ export default class TodoistPlugin extends Plugin {
   }
 
   setApiToken(token: string) {
-    this.app.secretStorage.setSecret(TOKEN_KEY, token);
+    this.app.secretStorage.setSecret(TOKEN_KEY, token.trim());
   }
 
   initTodoistClient() {

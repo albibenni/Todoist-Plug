@@ -1,5 +1,5 @@
-import { requestUrl } from "obsidian";
-import type { z } from "zod";
+import { type RequestUrlParam, requestUrl } from "obsidian";
+import { z } from "zod";
 import {
   type AddTaskArgs,
   type Label,
@@ -21,32 +21,45 @@ export class TodoistApi {
     schema: z.ZodType<T>,
     body?: unknown,
   ): Promise<T> {
-    const res = await requestUrl({
-      url: `https://api.todoist.com/rest/v2${endpoint}`,
+    const req: RequestUrlParam = {
+      url: `https://api.todoist.com/api/v1${endpoint}`,
       method,
       headers: {
-        Authorization: `Bearer ${this.token}`,
-        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.token.trim()}`,
       },
-      body: body ? JSON.stringify(body) : undefined,
       throw: false,
-    });
+    };
+
+    if (body) {
+      if (!req.headers) req.headers = {};
+      req.headers["Content-Type"] = "application/json";
+      req.body = JSON.stringify(body);
+    }
+
+    const res = await requestUrl(req);
 
     if (res.status >= 400) {
       throw new Error(`Todoist API error: ${res.status} ${res.text}`);
     }
 
+    let data: unknown;
     try {
-      return schema.parse(res.json);
+      data = res.json ?? JSON.parse(res.text);
+    } catch (_e) {
+      console.error("Failed to parse JSON response:", res.text);
+      throw new Error(`Invalid JSON response: ${res.text}`);
+    }
+
+    try {
+      return schema.parse(data);
     } catch (e) {
       console.error("Zod parse error for Todoist API response:", e);
       // Fallback in case Todoist API structure changes slightly and breaks validation
-      return res.json as T;
+      return data as T;
     }
   }
 
   async getProjects(): Promise<Project[]> {
-    const { z } = await import("zod");
     return await this.request<Project[]>(
       "GET",
       "/projects",
@@ -55,17 +68,14 @@ export class TodoistApi {
   }
 
   async getLabels(): Promise<Label[]> {
-    const { z } = await import("zod");
     return await this.request<Label[]>("GET", "/labels", z.array(LabelSchema));
   }
 
   async getTasks(): Promise<Task[]> {
-    const { z } = await import("zod");
     return await this.request<Task[]>("GET", "/tasks", z.array(TaskSchema));
   }
 
   async getTasksByFilter(args: { query: string }): Promise<Task[]> {
-    const { z } = await import("zod");
     return await this.request<Task[]>(
       "GET",
       `/tasks?filter=${encodeURIComponent(args.query)}`,
@@ -78,26 +88,9 @@ export class TodoistApi {
   }
 
   async quickAddTask(args: { text: string }): Promise<Task> {
-    const res = await requestUrl({
-      url: "https://api.todoist.com/sync/v9/quick/add",
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ text: args.text }),
-      throw: false,
+    // The unified v1 API natively supports natural language via the standard tasks endpoint
+    return await this.request<Task>("POST", "/tasks", TaskSchema, {
+      content: args.text,
     });
-
-    if (res.status >= 400) {
-      throw new Error(`Todoist API error: ${res.status} ${res.text}`);
-    }
-
-    try {
-      return TaskSchema.parse(res.json);
-    } catch (e) {
-      console.error("Zod parse error for Todoist Quick Add response:", e);
-      return res.json as Task;
-    }
   }
 }
