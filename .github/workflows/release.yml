@@ -27,7 +27,7 @@ jobs:
 
             - name: Build plugin
               run: |
-                  pnpm install --frozen-lockfile
+                  pnpm install --frozen-lockfile --ignore-scripts
                   pnpm run build
 
             - name: Check for optional styles
