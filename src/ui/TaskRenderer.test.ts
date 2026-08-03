@@ -33,36 +33,22 @@
   return this.createEl("div", options);
 };
 
-import type { Task } from "@doist/todoist-sdk";
 import { describe, expect, it } from "vitest";
+import type { Task } from "../api";
 import { TaskRenderer } from "./TaskRenderer";
 
 const createMockTask = (overrides: Partial<Task>): Task => ({
   id: "1",
-  userId: "1",
   projectId: "1",
-  sectionId: null,
-  parentId: null,
-  addedByUid: null,
-  assignedByUid: null,
-  responsibleUid: null,
-  labels: [],
-  deadline: null,
-  duration: null,
-  checked: false,
-  isDeleted: false,
-  addedAt: null,
-  completedAt: null,
-  updatedAt: null,
-  due: null,
-  priority: 1,
-  childOrder: 1,
   content: "Test task",
   description: "",
-  dayOrder: 1,
-  isCollapsed: false,
-  isUncompletable: false,
+  isCompleted: false,
+  labels: [],
+  priority: 1,
+  commentCount: 0,
+  createdAt: "2023-10-27T10:00:00Z",
   url: "https://todoist.com",
+  creatorId: "1",
   ...overrides,
 });
 
@@ -70,7 +56,7 @@ describe("TaskRenderer", () => {
   const mockTask1 = createMockTask({
     id: "1",
     content: "Buy milk",
-    completedAt: null,
+    isCompleted: false,
     priority: 1, // P4
     url: "https://todoist.com/showTask?id=1",
   });
@@ -78,15 +64,14 @@ describe("TaskRenderer", () => {
   const mockTask2 = createMockTask({
     id: "2",
     content: "Urgent meeting",
-    completedAt: new Date("2023-10-27T10:00:00Z"), // Provide Date instead of string for strictly accurate typing
+    isCompleted: true,
     priority: 4, // P1
     due: {
       string: "Today at 10am",
       date: "2023-10-27",
       isRecurring: false,
-      datetime: undefined,
       timezone: undefined,
-      lang: undefined,
+      lang: "",
     },
     url: "https://todoist.com/showTask?id=2",
   });

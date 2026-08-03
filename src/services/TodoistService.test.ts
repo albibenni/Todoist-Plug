@@ -1,5 +1,5 @@
-import type { TodoistApi } from "@doist/todoist-sdk";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { TodoistApi } from "../api";
 import { TodoistService } from "./TodoistService";
 
 describe("TodoistService", () => {

@@ -1,5 +1,5 @@
-import type { AddTaskArgs, Label, Project } from "@doist/todoist-sdk";
 import { App, Menu, Modal, Notice, setIcon } from "obsidian";
+import type { AddTaskArgs, Label, Project } from "../api";
 import type { TodoistService } from "../services/TodoistService";
 import type { TodoistPluginSettings } from "../types";
 

@@ -1,5 +1,3 @@
-import { TodoistApi } from "@doist/todoist-sdk";
-import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
 import {
   type Editor,
   MarkdownView,
@@ -8,6 +6,7 @@ import {
   requestUrl,
   type WorkspaceLeaf,
 } from "obsidian";
+import { TodoistApi } from "./api";
 import { TodoistService } from "./services/TodoistService";
 import { TodoistSettingTab } from "./settings";
 import {
@@ -266,43 +265,7 @@ export default class TodoistPlugin extends Plugin {
   initTodoistClient() {
     const token = this.getApiToken();
     if (token) {
-      // Wrap Obsidian's requestUrl to perfectly match standard fetch API
-      const customFetch = async (
-        url: RequestInfo | URL,
-        init?: RequestInit,
-      ) => {
-        const headers: Record<string, string> = {};
-        if (init?.headers) {
-          new Headers(init.headers).forEach((value, key) => {
-            headers[key] = value;
-          });
-        }
-
-        const req: RequestUrlParam = {
-          url: url.toString(),
-          method: init?.method || "GET",
-          headers,
-          body:
-            typeof init?.body === "string" || init?.body instanceof ArrayBuffer
-              ? init.body
-              : undefined,
-          throw: false,
-        };
-        const res: RequestUrlResponse = await requestUrl(req);
-
-        return {
-          ok: res.status >= 200 && res.status < 300,
-          status: res.status,
-          statusText: res.status >= 200 && res.status < 300 ? "OK" : "Error",
-          json: async () => res.json as unknown,
-          text: async () => (typeof res.text === "string" ? res.text : ""),
-          headers: res.headers,
-        };
-      };
-
-      this.api = new TodoistApi(token, {
-        customFetch: customFetch,
-      });
+      this.api = new TodoistApi(token);
       this.todoistService = new TodoistService(this.api);
     } else {
       this.api = null;

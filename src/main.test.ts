@@ -1,5 +1,5 @@
 // biome-ignore lint/suspicious/noExplicitAny: mock
-(global as any).createEl = (tag: string) => document.createElement(tag);
+(globalThis as any).createEl = (tag: string) => document.createElement(tag);
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import TodoistPlugin from "./main";
@@ -13,8 +13,8 @@ vi.mock("@doist/todoist-sdk", () => {
   };
 });
 
-import type { TodoistApi } from "@doist/todoist-sdk";
 import type { App, PluginManifest } from "obsidian";
+import type { TodoistApi } from "./api";
 import type { TodoistService } from "./services/TodoistService";
 
 describe("TodoistPlugin Token Logic", () => {

@@ -1,4 +1,4 @@
-import type { Project, Task } from "@doist/todoist-sdk";
+import type { Project, Task } from "../api";
 
 export class TaskRenderer {
   /**
@@ -58,7 +58,7 @@ export class TaskRenderer {
 
     return tasks
       .map((task) => {
-        const checkbox = task.completedAt ? "[x]" : "[ ]";
+        const checkbox = task.isCompleted ? "[x]" : "[ ]";
 
         // Build the task string
         let taskString = `- ${checkbox} ${task.content}`;
@@ -113,7 +113,7 @@ export class TaskRenderer {
       });
 
       const checkbox = li.createEl("input", { type: "checkbox" });
-      checkbox.checked = !!task.completedAt;
+      checkbox.checked = !!task.isCompleted;
       checkbox.disabled = true;
 
       li.createSpan({ text: task.content, cls: "todoist-task-content" });
