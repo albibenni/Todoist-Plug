@@ -1,7 +1,7 @@
 {
   "id": "todoist-plug",
   "name": "Todoist-Plug",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "minAppVersion": "1.0.0",
   "description": "A robust integration between Todoist and Obsidian for managing your tasks.",
   "author": "AlbiBenni",
