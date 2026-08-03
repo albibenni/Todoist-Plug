@@ -46,6 +46,7 @@ To comply with Obsidian's plugin guidelines, here is a full disclosure of this p
 - **Todoist API**: The plugin makes background network requests exclusively to `api.todoist.com` to fetch and sync your tasks, projects, labels, and priorities.
 - **External Links**: The settings tab contains links that open in your default browser to `github.com` (for documentation and feedback) and `www.paypal.com` (for donations). No background network requests are made to these domains.
 - **WASM & Base64**: The plugin bundle may include WebAssembly (WASM) modules and `btoa`/`atob` encoding/decoding functions. These are standard inclusions from our bundled dependencies (such as the official Todoist SDK) and are not used to obscure code.
+- **Node.js Modules (`fs`)**: The plugin bundle may contain references to the Node.js `fs` module. This is imported automatically by underlying dependencies and is never used by this plugin to directly read or write files on your local system outside of the official Obsidian vault API.
 
 ## How to use
 
