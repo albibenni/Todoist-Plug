@@ -29,7 +29,7 @@ export class TodoistSidebarView extends ItemView {
     container.empty();
     container.addClass("todoist-sidebar");
 
-    const header = container.createEl("div", { cls: "todoist-sidebar-header" });
+    const header = container.createDiv({ cls: "todoist-sidebar-header" });
     const headerTitle = header.createEl("h4", { text: "Todoist Today" });
     headerTitle.setCssStyles({ margin: "0" });
 

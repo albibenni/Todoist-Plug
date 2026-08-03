@@ -96,69 +96,51 @@ export class TaskRenderer {
     container.innerHTML = "";
 
     if (!tasks || tasks.length === 0) {
-      const p = createEl("p");
-      p.textContent = "No tasks found.";
-      p.classList.add("todoist-empty-state");
-      container.appendChild(p);
+      container.createEl("p", {
+        text: "No tasks found.",
+        cls: "todoist-empty-state",
+      });
       return;
     }
 
-    const ul = createEl("ul");
-    ul.classList.add("todoist-task-list");
+    const ul = container.createEl("ul", { cls: "todoist-task-list" });
 
     const projectsMap = Object.fromEntries(projects.map((p) => [p.id, p]));
 
     tasks.forEach((task) => {
-      const li = createEl("li");
-      li.classList.add("todoist-task-item");
-      li.classList.add(`todoist-priority-${task.priority}`);
+      const li = ul.createEl("li", {
+        cls: ["todoist-task-item", `todoist-priority-${task.priority}`],
+      });
 
-      const checkbox = createEl("input");
-      checkbox.type = "checkbox";
+      const checkbox = li.createEl("input", { type: "checkbox" });
       checkbox.checked = !!task.completedAt;
-      checkbox.disabled = true; // For now, read-only
-      li.appendChild(checkbox);
+      checkbox.disabled = true;
 
-      const span = createEl("span");
-      span.textContent = task.content;
-      span.classList.add("todoist-task-content");
-      li.appendChild(span);
+      li.createSpan({ text: task.content, cls: "todoist-task-content" });
 
-      const metadataContainer = createEl("span");
-      metadataContainer.classList.add("todoist-task-metadata");
+      const metadataContainer = li.createSpan({ cls: "todoist-task-metadata" });
 
       const project = task.projectId ? projectsMap[task.projectId] : undefined;
       if (project) {
-        const projectSpan = createEl("span");
-        projectSpan.textContent = `#${project.name}`;
-        projectSpan.classList.add("todoist-task-project");
-        // Use a simple hash for color mapping if desired, or let CSS handle it
-        metadataContainer.appendChild(projectSpan);
+        metadataContainer.createSpan({
+          text: `#${project.name}`,
+          cls: "todoist-task-project",
+        });
       }
 
       if (task.due && task.due.date) {
         const { text, isOverdue, isToday } = TaskRenderer.formatDate(
           task.due.date,
         );
-        const dueSpan = createEl("span");
 
-        // If it's recurring, optionally append the recurrence text, but keep it clean
-        dueSpan.textContent = task.due.isRecurring ? `${text} 🔁` : text;
-        dueSpan.classList.add("todoist-task-due");
+        const dueSpan = metadataContainer.createSpan({
+          text: task.due.isRecurring ? `${text} 🔁` : text,
+          cls: "todoist-task-due",
+        });
 
         if (isOverdue) dueSpan.classList.add("todoist-overdue");
         if (isToday) dueSpan.classList.add("todoist-today");
-
-        metadataContainer.appendChild(dueSpan);
       }
-
-      if (metadataContainer.children.length > 0) {
-        li.appendChild(metadataContainer);
-      }
-
-      ul.appendChild(li);
     });
-
-    container.appendChild(ul);
   }
 }

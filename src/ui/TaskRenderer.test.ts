@@ -1,5 +1,37 @@
 // biome-ignore lint/suspicious/noExplicitAny: mock
-(global as any).createEl = (tag: string) => document.createElement(tag);
+(HTMLElement.prototype as any).createEl = function (
+  tag: string,
+  // biome-ignore lint/suspicious/noExplicitAny: mock
+  options?: any,
+) {
+  const el = document.createElement(tag);
+  if (options) {
+    if (options.cls) {
+      if (Array.isArray(options.cls)) {
+        el.classList.add(...options.cls);
+      } else {
+        el.classList.add(options.cls);
+      }
+    }
+    if (options.text) {
+      el.textContent = options.text;
+    }
+    if (options.type) {
+      // biome-ignore lint/suspicious/noExplicitAny: mock
+      (el as any).type = options.type;
+    }
+  }
+  this.appendChild(el);
+  return el;
+};
+// biome-ignore lint/suspicious/noExplicitAny: mock
+(HTMLElement.prototype as any).createSpan = function (options?: any) {
+  return this.createEl("span", options);
+};
+// biome-ignore lint/suspicious/noExplicitAny: mock
+(HTMLElement.prototype as any).createDiv = function (options?: any) {
+  return this.createEl("div", options);
+};
 
 import type { Task } from "@doist/todoist-sdk";
 import { describe, expect, it } from "vitest";

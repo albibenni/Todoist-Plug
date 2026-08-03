@@ -1,4 +1,10 @@
-import { App, PluginSettingTab, Setting, setIcon } from "obsidian";
+import {
+  App,
+  PluginSettingTab,
+  Setting,
+  type SettingDefinitionItem,
+  setIcon,
+} from "obsidian";
 import type TodoistPlugin from "./main";
 
 export class TodoistSettingTab extends PluginSettingTab {
@@ -14,8 +20,6 @@ export class TodoistSettingTab extends PluginSettingTab {
 
     containerEl.empty();
     containerEl.addClass("todoist-settings-tab");
-
-    new Setting(containerEl).setName("General").setHeading();
 
     const linksSetting = new Setting(containerEl)
       .setName("Links")
@@ -100,7 +104,9 @@ export class TodoistSettingTab extends PluginSettingTab {
         .then((projects) => {
           projectSetting.addDropdown((dropdown) => {
             dropdown.addOption("", "Inbox");
-            projects.forEach((p) => dropdown.addOption(p.id, p.name));
+            projects.forEach((p) => {
+              dropdown.addOption(p.id, p.name);
+            });
             dropdown.setValue(this.plugin.settings.defaultProject || "");
             dropdown.onChange((value) => {
               this.plugin.settings.defaultProject = value;
@@ -162,5 +168,10 @@ export class TodoistSettingTab extends PluginSettingTab {
             void this.plugin.saveSettings();
           });
       });
+  }
+
+  // Implement getSettingDefinitions to support settings search in Obsidian 1.13.0+
+  getSettingDefinitions(): SettingDefinitionItem[] {
+    return [];
   }
 }

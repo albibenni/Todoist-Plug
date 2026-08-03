@@ -27,7 +27,7 @@ export default class TodoistPlugin extends Plugin {
   todoistService: TodoistService | null = null;
 
   async onload() {
-    await void this.loadSettings();
+    await this.loadSettings();
 
     // Add settings tab
     this.addSettingTab(new TodoistSettingTab(this.app, this));
@@ -251,7 +251,7 @@ export default class TodoistPlugin extends Plugin {
     }
 
     if (leaf) {
-      workspace.revealLeaf(leaf);
+      await workspace.revealLeaf(leaf);
     }
   }
 
@@ -311,7 +311,7 @@ export default class TodoistPlugin extends Plugin {
   }
 
   async loadSettings() {
-    const data = await this.loadData();
+    const data: unknown = await this.loadData();
     try {
       this.settings = TodoistPluginSettingsSchema.parse(data || {});
     } catch (err) {
