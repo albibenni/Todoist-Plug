@@ -3,7 +3,7 @@
   "name": "Todoist-Plug",
   "version": "1.0.6",
   "minAppVersion": "1.0.0",
-  "description": "A robust integration between Todoist and Obsidian for managing your tasks.",
+  "description": "A robust integration with Todoist for managing your tasks.",
   "author": "AlbiBenni",
   "authorUrl": "https://github.com/albibenni",
   "fundingUrl": "",
