@@ -39,16 +39,16 @@ import { TaskRenderer } from "./TaskRenderer";
 
 const createMockTask = (overrides: Partial<Task>): Task => ({
   id: "1",
-  projectId: "1",
+  project_id: "1",
   content: "Test task",
   description: "",
-  isCompleted: false,
+  is_completed: false,
   labels: [],
   priority: 1,
-  commentCount: 0,
-  createdAt: "2023-10-27T10:00:00Z",
+  comment_count: 0,
+  created_at: "2023-10-27T10:00:00Z",
   url: "https://todoist.com",
-  creatorId: "1",
+  creator_id: "1",
   ...overrides,
 });
 
@@ -56,7 +56,7 @@ describe("TaskRenderer", () => {
   const mockTask1 = createMockTask({
     id: "1",
     content: "Buy milk",
-    isCompleted: false,
+    is_completed: false,
     priority: 1, // P4
     url: "https://todoist.com/showTask?id=1",
   });
@@ -64,12 +64,12 @@ describe("TaskRenderer", () => {
   const mockTask2 = createMockTask({
     id: "2",
     content: "Urgent meeting",
-    isCompleted: true,
+    is_completed: true,
     priority: 4, // P1
     due: {
       string: "Today at 10am",
       date: "2023-10-27",
-      isRecurring: false,
+      is_recurring: false,
       timezone: undefined,
       lang: "",
     },

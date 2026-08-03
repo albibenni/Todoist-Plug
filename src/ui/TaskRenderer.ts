@@ -58,7 +58,7 @@ export class TaskRenderer {
 
     return tasks
       .map((task) => {
-        const checkbox = task.isCompleted ? "[x]" : "[ ]";
+        const checkbox = task.is_completed ? "[x]" : "[ ]";
 
         // Build the task string
         let taskString = `- ${checkbox} ${task.content}`;
@@ -113,14 +113,14 @@ export class TaskRenderer {
       });
 
       const checkbox = li.createEl("input", { type: "checkbox" });
-      checkbox.checked = !!task.isCompleted;
+      checkbox.checked = !!task.is_completed;
       checkbox.disabled = true;
 
       li.createSpan({ text: task.content, cls: "todoist-task-content" });
 
       const metadataContainer = li.createSpan({ cls: "todoist-task-metadata" });
 
-      const project = task.projectId ? projectsMap[task.projectId] : undefined;
+      const project = task.project_id ? projectsMap[task.project_id] : undefined;
       if (project) {
         metadataContainer.createSpan({
           text: `#${project.name}`,
@@ -134,7 +134,7 @@ export class TaskRenderer {
         );
 
         const dueSpan = metadataContainer.createSpan({
-          text: task.due.isRecurring ? `${text} 🔁` : text,
+          text: task.due.is_recurring ? `${text} 🔁` : text,
           cls: "todoist-task-due",
         });
 

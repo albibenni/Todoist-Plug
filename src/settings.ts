@@ -4,9 +4,9 @@ import {
   Setting,
   type SettingDefinitionItem,
   setIcon,
+  SecretComponent,
 } from "obsidian";
 import type TodoistPlugin from "./main";
-import { ApiTokenModal } from "./ui/ApiTokenModal";
 
 export class TodoistSettingTab extends PluginSettingTab {
   plugin: TodoistPlugin;
@@ -72,20 +72,16 @@ export class TodoistSettingTab extends PluginSettingTab {
 
     const apiSetting = new Setting(containerEl)
       .setName("API token")
-      .setDesc("The Todoist API token to use when fetching tasks");
-
-    if (this.plugin.getApiToken()) {
-      const checkIcon = apiSetting.controlEl.createSpan("todoist-success-icon");
-      setIcon(checkIcon, "check-circle");
-    }
-
-    apiSetting.addButton((btn) => {
-      btn
-        .setButtonText(this.plugin.getApiToken() ? "Update Token" : "Set Token")
-        .onClick(() => {
-          new ApiTokenModal(this.plugin.app, this.plugin).open();
-        });
-    });
+      .setDesc("Select a secret from SecretStorage")
+      .addComponent((el) =>
+        new SecretComponent(this.app, el)
+          .setValue(this.plugin.settings.apiToken || "")
+          .onChange((value) => {
+            this.plugin.settings.apiToken = value;
+            void this.plugin.saveSettings();
+            this.plugin.initTodoistClient();
+          })
+      );
 
     new Setting(containerEl).setName("Default Settings").setHeading();
 

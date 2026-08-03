@@ -1,4 +1,5 @@
 import {
+  App,
   type Editor,
   MarkdownView,
   Notice,
@@ -14,12 +15,11 @@ import {
   type TodoistPluginSettings,
   TodoistPluginSettingsSchema,
 } from "./types";
-import { ApiTokenModal } from "./ui/ApiTokenModal";
 import { QuickAddModal } from "./ui/QuickAddModal";
 import { TaskRenderer } from "./ui/TaskRenderer";
 import { TODOIST_VIEW_TYPE, TodoistSidebarView } from "./ui/TodoistSidebarView";
 
-const TOKEN_KEY = "todoist-api-token";
+// Removed AppWithSecretStorage interface
 
 export default class TodoistPlugin extends Plugin {
   settings!: TodoistPluginSettings;
@@ -40,7 +40,7 @@ export default class TodoistPlugin extends Plugin {
       id: "setup-api-token",
       name: "Setup API token",
       callback: () => {
-        new ApiTokenModal(this.app, this).open();
+        new Notice("Please go to the plugin settings to configure your Todoist API token.");
       },
     });
 
@@ -108,7 +108,12 @@ export default class TodoistPlugin extends Plugin {
 
         try {
           new Notice("Adding task to Todoist...");
-          await this.todoistService.addQuickTask(text);
+          await this.todoistService.addQuickTask(text, {
+            project_id: this.settings.defaultProject,
+            priority: this.settings.defaultPriority,
+            due_string: this.settings.defaultDate,
+            labels: this.settings.defaultLabels,
+          });
           new Notice("Task added successfully!");
         } catch (error) {
           console.error("Failed to add task from line:", error);
@@ -265,11 +270,9 @@ export default class TodoistPlugin extends Plugin {
   }
 
   getApiToken(): string | null {
-    return this.app.secretStorage.getSecret(TOKEN_KEY);
-  }
-
-  setApiToken(token: string) {
-    this.app.secretStorage.setSecret(TOKEN_KEY, token.trim());
+    if (!this.settings.apiToken) return null;
+    // @ts-ignore - secretStorage is an undocumented Obsidian API
+    return this.app.secretStorage.getSecret(this.settings.apiToken);
   }
 
   initTodoistClient() {

@@ -30,28 +30,21 @@ describe("TodoistPlugin Token Logic", () => {
     } as unknown as App;
     // Instantiate the plugin with our mocked app
     plugin = new TodoistPlugin(appMock, {} as PluginManifest);
+    plugin.settings = { apiToken: "todoist-api-token" } as any;
   });
 
-  describe("getApiToken / setApiToken", () => {
+  describe("getApiToken", () => {
     it("should securely retrieve the token from app.secretStorage", () => {
       // @ts-ignore
       appMock.secretStorage.getSecret.mockReturnValue("test-token");
+      plugin.settings.apiToken = "my-secret-name";
 
       const token = plugin.getApiToken();
 
       expect(appMock.secretStorage.getSecret).toHaveBeenCalledWith(
-        "todoist-api-token",
+        "my-secret-name",
       );
       expect(token).toBe("test-token");
-    });
-
-    it("should securely save the token to app.secretStorage", () => {
-      plugin.setApiToken("new-token-123");
-
-      expect(appMock.secretStorage.setSecret).toHaveBeenCalledWith(
-        "todoist-api-token",
-        "new-token-123",
-      );
     });
   });
 

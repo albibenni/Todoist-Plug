@@ -187,10 +187,7 @@ export class QuickAddModal extends Modal {
     let projectsCache: Project[] = [];
     void this.service.getProjects().then((projects) => {
       projectsCache = projects.filter(
-        (p) =>
-          p.name !== "Inbox" &&
-          !(p as unknown as { inboxProject?: boolean }).inboxProject &&
-          !(p as unknown as { isInboxProject?: boolean }).isInboxProject,
+        (p) => p.name !== "Inbox" && !p.is_inbox_project,
       );
       const proj = projects.find((p) => p.id === this.projectId);
       if (proj) {
@@ -651,11 +648,11 @@ export class QuickAddModal extends Modal {
       content: this.taskTitle,
       description: finalDesc,
       priority: this.priority,
-      dueString: this.dueDate || undefined,
+      due_string: this.dueDate || undefined,
     };
 
     if (this.projectId) {
-      args.projectId = this.projectId;
+      args.project_id = this.projectId;
     }
 
     if (this.labels && this.labels.length > 0) {

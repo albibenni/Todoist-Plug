@@ -6,13 +6,13 @@ export class TodoistService {
 
   constructor(private api: TodoistApi) {}
 
-  async addQuickTask(text: string): Promise<Task> {
+  async addQuickTask(text: string, settings?: { project_id?: string; due_string?: string; priority?: number; labels?: string[] }): Promise<Task> {
     if (!text.trim()) {
       throw new Error("Task text cannot be empty");
     }
 
     try {
-      return await this.api.quickAddTask({ text });
+      return await this.api.quickAddTask({ text, ...settings });
     } catch (error) {
       console.error("Failed to add quick task:", error);
       throw new Error("Failed to add task to Todoist");
