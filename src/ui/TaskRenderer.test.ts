@@ -1,3 +1,6 @@
+// biome-ignore lint/suspicious/noExplicitAny: mock
+(global as any).createEl = (tag: string) => document.createElement(tag);
+
 import type { Task } from "@doist/todoist-sdk";
 import { describe, expect, it } from "vitest";
 import { TaskRenderer } from "./TaskRenderer";

@@ -43,7 +43,7 @@ export class TaskRenderer {
       }
 
       return { text, isOverdue, isToday };
-    } catch (_e) {
+    } catch {
       return { text: dateString, isOverdue: false, isToday: false };
     }
   }
@@ -96,40 +96,40 @@ export class TaskRenderer {
     container.innerHTML = "";
 
     if (!tasks || tasks.length === 0) {
-      const p = document.createElement("p");
+      const p = createEl("p");
       p.textContent = "No tasks found.";
       p.classList.add("todoist-empty-state");
       container.appendChild(p);
       return;
     }
 
-    const ul = document.createElement("ul");
+    const ul = createEl("ul");
     ul.classList.add("todoist-task-list");
 
     const projectsMap = Object.fromEntries(projects.map((p) => [p.id, p]));
 
     tasks.forEach((task) => {
-      const li = document.createElement("li");
+      const li = createEl("li");
       li.classList.add("todoist-task-item");
       li.classList.add(`todoist-priority-${task.priority}`);
 
-      const checkbox = document.createElement("input");
+      const checkbox = createEl("input");
       checkbox.type = "checkbox";
       checkbox.checked = !!task.completedAt;
       checkbox.disabled = true; // For now, read-only
       li.appendChild(checkbox);
 
-      const span = document.createElement("span");
+      const span = createEl("span");
       span.textContent = task.content;
       span.classList.add("todoist-task-content");
       li.appendChild(span);
 
-      const metadataContainer = document.createElement("span");
+      const metadataContainer = createEl("span");
       metadataContainer.classList.add("todoist-task-metadata");
 
       const project = task.projectId ? projectsMap[task.projectId] : undefined;
       if (project) {
-        const projectSpan = document.createElement("span");
+        const projectSpan = createEl("span");
         projectSpan.textContent = `#${project.name}`;
         projectSpan.classList.add("todoist-task-project");
         // Use a simple hash for color mapping if desired, or let CSS handle it
@@ -140,7 +140,7 @@ export class TaskRenderer {
         const { text, isOverdue, isToday } = TaskRenderer.formatDate(
           task.due.date,
         );
-        const dueSpan = document.createElement("span");
+        const dueSpan = createEl("span");
 
         // If it's recurring, optionally append the recurrence text, but keep it clean
         dueSpan.textContent = task.due.isRecurring ? `${text} 🔁` : text;

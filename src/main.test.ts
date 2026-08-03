@@ -1,3 +1,6 @@
+// biome-ignore lint/suspicious/noExplicitAny: mock
+(global as any).createEl = (tag: string) => document.createElement(tag);
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import TodoistPlugin from "./main";
 

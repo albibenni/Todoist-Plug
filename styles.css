@@ -352,15 +352,15 @@
 
 .todoist-settings-tab .setting-item {
   background-color: var(--background-secondary);
-  border: 1px solid var(--background-modifier-border) !important;
+  border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-m);
-  padding: 16px 20px !important;
+  padding: 16px 20px;
   margin-bottom: 12px;
 }
 
 .todoist-settings-btn {
-  background-color: #e4af0a !important;
-  color: var(--text-on-accent) !important;
+  background-color: #e4af0a;
+  color: var(--text-on-accent);
   margin-left: 8px;
   display: inline-flex;
   align-items: center;
@@ -427,11 +427,11 @@
 }
 
 .todoist-overdue {
-  color: var(--text-error) !important;
+  color: var(--text-error);
   font-weight: bold;
 }
 
 .todoist-today {
-  color: var(--text-success) !important;
+  color: var(--text-success);
   font-weight: bold;
 }

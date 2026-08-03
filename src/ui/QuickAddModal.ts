@@ -63,7 +63,7 @@ export class QuickAddModal extends Modal {
     };
 
     let labelsCache: Label[] = [];
-    this.service.getLabels().then((labels) => {
+    void this.service.getLabels().then((labels) => {
       labelsCache = labels;
     });
 
@@ -94,7 +94,7 @@ export class QuickAddModal extends Modal {
     const groupLeft = selectors.createDiv("task-creation-selectors-group");
 
     const dateContainer = groupLeft.createDiv();
-    dateContainer.style.position = "relative";
+    dateContainer.setCssStyles({ position: "relative" });
 
     const dateBtn = dateContainer.createEl("button");
     const dateBtnIcon = dateBtn.createSpan("obsidian-icon");
@@ -185,7 +185,7 @@ export class QuickAddModal extends Modal {
     setIcon(chevronIcon, "chevron-down");
 
     let projectsCache: Project[] = [];
-    this.service.getProjects().then((projects) => {
+    void this.service.getProjects().then((projects) => {
       projectsCache = projects.filter(
         (p) =>
           p.name !== "Inbox" &&
@@ -196,7 +196,7 @@ export class QuickAddModal extends Modal {
       if (proj) {
         projectLabel.textContent = proj.name;
         if (proj.color && TODOIST_COLORS[proj.color]) {
-          projectIcon.style.color = TODOIST_COLORS[proj.color]!;
+          projectIcon.setCssStyles({ color: TODOIST_COLORS[proj.color]! });
         }
       }
     });
@@ -216,45 +216,47 @@ export class QuickAddModal extends Modal {
 
     const checkBtn = actionGrp.createEl("button");
     checkBtn.textContent = "Check if exists";
-    checkBtn.style.marginRight = "auto"; // Push it to the left side if possible, or just space it
-    checkBtn.addEventListener("click", async () => {
-      if (!this.taskTitle.trim()) {
-        new Notice("Task title is empty");
-        return;
-      }
-
-      let filenameForCheck: string | undefined = undefined;
-      if (this.initialUrl) {
-        const fileMatch = this.initialUrl.match(/file=([^&]+)/);
-        if (fileMatch && fileMatch[1]) {
-          filenameForCheck = decodeURIComponent(fileMatch[1]);
-          filenameForCheck = filenameForCheck
-            .replace(/\.md$/, "")
-            .split("/")
-            .pop();
+    checkBtn.setCssStyles({ marginRight: "auto" }); // Push it to the left side if possible, or just space it
+    checkBtn.addEventListener("click", () => {
+      void (async () => {
+        if (!this.taskTitle.trim()) {
+          new Notice("Task title is empty");
+          return;
         }
-      }
 
-      new Notice(`Searching Todoist for: "${this.taskTitle}"...`);
-      checkBtn.disabled = true;
-      checkBtn.textContent = "Checking...";
-
-      try {
-        const exists = await this.service.checkTaskExists(
-          this.taskTitle,
-          filenameForCheck,
-        );
-        if (exists) {
-          new Notice("✅ Yes! This task already exists in Todoist.");
-        } else {
-          new Notice("❌ No matching task found in Todoist.");
+        let filenameForCheck: string | undefined = undefined;
+        if (this.initialUrl) {
+          const fileMatch = this.initialUrl.match(/file=([^&]+)/);
+          if (fileMatch && fileMatch[1]) {
+            filenameForCheck = decodeURIComponent(fileMatch[1]);
+            filenameForCheck = filenameForCheck
+              .replace(/\.md$/, "")
+              .split("/")
+              .pop();
+          }
         }
-      } catch (_e) {
-        new Notice("Failed to check Todoist.");
-      } finally {
-        checkBtn.disabled = false;
-        checkBtn.textContent = "Check if exists";
-      }
+
+        new Notice(`Searching Todoist for: "${this.taskTitle}"...`);
+        checkBtn.disabled = true;
+        checkBtn.textContent = "Checking...";
+
+        try {
+          const exists = await this.service.checkTaskExists(
+            this.taskTitle,
+            filenameForCheck,
+          );
+          if (exists) {
+            new Notice("✅ Yes! This task already exists in Todoist.");
+          } else {
+            new Notice("❌ No matching task found in Todoist.");
+          }
+        } catch {
+          new Notice("Failed to check Todoist.");
+        } finally {
+          checkBtn.disabled = false;
+          checkBtn.textContent = "Check if exists";
+        }
+      })();
     });
 
     const cancelBtn = actionGrp.createEl("button");
@@ -265,7 +267,7 @@ export class QuickAddModal extends Modal {
     const addBtn = addBtnGrp.createEl("button");
     addBtn.addClasses(["mod-cta", "add-task-primary"]);
     addBtn.textContent = "Add task";
-    addBtn.addEventListener("click", () => this.submitTask());
+    addBtn.addEventListener("click", () => void this.submitTask());
 
     const dropBtn = addBtnGrp.createEl("button");
     dropBtn.addClasses(["mod-cta", "add-task-dropdown"]);
@@ -273,7 +275,7 @@ export class QuickAddModal extends Modal {
     setIcon(dropBtnIcon, "chevron-down");
 
     // Focus and resize initially
-    setTimeout(() => {
+    window.setTimeout(() => {
       titleInput.focus();
       this.autoResizeTextarea(titleInput);
       this.autoResizeTextarea(descInput);
@@ -283,14 +285,14 @@ export class QuickAddModal extends Modal {
     titleInput.addEventListener("keydown", (e: KeyboardEvent) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        this.submitTask();
+        void this.submitTask();
       }
     });
   }
 
   private autoResizeTextarea(textarea: HTMLTextAreaElement) {
-    textarea.style.height = "auto";
-    textarea.style.height = textarea.scrollHeight + "px";
+    textarea.setCssStyles({ height: "auto" });
+    textarea.setCssStyles({ height: textarea.scrollHeight + "px" });
   }
 
   private showProjectPopover(
@@ -312,10 +314,10 @@ export class QuickAddModal extends Modal {
       "task-option-dialog task-project-menu",
     );
     const rect = btn.getBoundingClientRect();
-    popover.style.position = "fixed";
-    popover.style.top = `${rect.bottom + 4}px`;
-    popover.style.left = `${rect.left}px`;
-    popover.style.zIndex = "1000";
+    popover.setCssStyles({ position: "fixed" });
+    popover.setCssStyles({ top: `${rect.bottom + 4}px` });
+    popover.setCssStyles({ left: `${rect.left}px` });
+    popover.setCssStyles({ zIndex: "1000" });
 
     const searchContainer = popover.createDiv("search-filter-container");
     const searchInput = searchContainer.createEl("input", { type: "text" });
@@ -337,7 +339,7 @@ export class QuickAddModal extends Modal {
           this.projectId = "";
           label.textContent = "Inbox";
           setIcon(iconElem, "inbox");
-          iconElem.style.color = "";
+          iconElem.setCssStyles({ color: "" });
           popover.remove();
         });
       }
@@ -349,7 +351,7 @@ export class QuickAddModal extends Modal {
         const iconSpan = item.createSpan("obsidian-icon");
         setIcon(iconSpan, "hash");
         if (p.color && colors[p.color]) {
-          iconSpan.style.color = colors[p.color]!;
+          iconSpan.setCssStyles({ color: colors[p.color]! });
         }
         item.createSpan().textContent = p.name;
 
@@ -358,9 +360,9 @@ export class QuickAddModal extends Modal {
           label.textContent = p.name;
           setIcon(iconElem, "hash");
           if (p.color && colors[p.color]) {
-            iconElem.style.color = colors[p.color]!;
+            iconElem.setCssStyles({ color: colors[p.color]! });
           } else {
-            iconElem.style.color = "";
+            iconElem.setCssStyles({ color: "" });
           }
           popover.remove();
         });
@@ -380,7 +382,7 @@ export class QuickAddModal extends Modal {
       }
     };
 
-    setTimeout(() => {
+    window.setTimeout(() => {
       btn.ownerDocument.addEventListener("click", closePopover);
       searchInput.focus();
     }, 0);
@@ -404,10 +406,10 @@ export class QuickAddModal extends Modal {
       "task-option-dialog task-label-menu task-project-menu",
     );
     const rect = btn.getBoundingClientRect();
-    popover.style.position = "fixed";
-    popover.style.top = `${rect.bottom + 4}px`;
-    popover.style.left = `${rect.left}px`;
-    popover.style.zIndex = "1000";
+    popover.setCssStyles({ position: "fixed" });
+    popover.setCssStyles({ top: `${rect.bottom + 4}px` });
+    popover.setCssStyles({ left: `${rect.left}px` });
+    popover.setCssStyles({ zIndex: "1000" });
 
     const searchContainer = popover.createDiv("search-filter-container");
     const searchInput = searchContainer.createEl("input", { type: "text" });
@@ -428,15 +430,16 @@ export class QuickAddModal extends Modal {
         const iconSpan = item.createSpan("obsidian-icon");
         setIcon(iconSpan, "tag");
         if (l.color && colors[l.color]) {
-          iconSpan.style.color = colors[l.color]!;
+          iconSpan.setCssStyles({ color: colors[l.color]! });
         }
 
         const labelName = item.createSpan();
         labelName.textContent = l.name;
 
         if (this.labels.includes(l.name)) {
-          item.style.backgroundColor =
-            "var(--background-modifier-active-hover)";
+          item.setCssStyles({
+            backgroundColor: "var(--background-modifier-active-hover)",
+          });
         }
 
         item.addEventListener("click", (e) => {
@@ -468,7 +471,7 @@ export class QuickAddModal extends Modal {
       }
     };
 
-    setTimeout(() => {
+    window.setTimeout(() => {
       btn.ownerDocument.addEventListener("click", closePopover);
       searchInput.focus();
     }, 0);
@@ -487,10 +490,10 @@ export class QuickAddModal extends Modal {
       "task-option-dialog task-date-menu",
     );
     const rect = btn.getBoundingClientRect();
-    popover.style.position = "fixed";
-    popover.style.top = `${rect.bottom + 4}px`;
-    popover.style.left = `${rect.left}px`;
-    popover.style.zIndex = "1000";
+    popover.setCssStyles({ position: "fixed" });
+    popover.setCssStyles({ top: `${rect.bottom + 4}px` });
+    popover.setCssStyles({ left: `${rect.left}px` });
+    popover.setCssStyles({ zIndex: "1000" });
 
     const addSuggestion = (
       iconId: string,
@@ -633,7 +636,7 @@ export class QuickAddModal extends Modal {
       }
     };
 
-    setTimeout(() => {
+    window.setTimeout(() => {
       btn.ownerDocument.addEventListener("click", closePopover);
     }, 0);
   }
@@ -670,7 +673,7 @@ export class QuickAddModal extends Modal {
       await this.service.addTask(args);
       new Notice(`Successfully added: "${this.taskTitle}"`);
       this.close();
-    } catch (_error) {
+    } catch {
       new Notice("Failed to add task. Check your connection and token.");
     }
   }

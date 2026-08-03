@@ -1,6 +1,5 @@
 import { App, PluginSettingTab, Setting, setIcon } from "obsidian";
 import type TodoistPlugin from "./main";
-import { DEFAULT_SETTINGS } from "./types";
 
 export class TodoistSettingTab extends PluginSettingTab {
   plugin: TodoistPlugin;
@@ -16,7 +15,7 @@ export class TodoistSettingTab extends PluginSettingTab {
     containerEl.empty();
     containerEl.addClass("todoist-settings-tab");
 
-    containerEl.createEl("h3", { text: "General" });
+    new Setting(containerEl).setName("General").setHeading();
 
     const linksSetting = new Setting(containerEl)
       .setName("Links")
@@ -86,7 +85,7 @@ export class TodoistSettingTab extends PluginSettingTab {
       text.inputEl.type = "password";
     });
 
-    containerEl.createEl("h3", { text: "Defaults" }).style.marginTop = "2em";
+    new Setting(containerEl).setName("Defaults").setHeading();
 
     const projectSetting = new Setting(containerEl)
       .setName("Default Project")
@@ -103,9 +102,9 @@ export class TodoistSettingTab extends PluginSettingTab {
             dropdown.addOption("", "Inbox");
             projects.forEach((p) => dropdown.addOption(p.id, p.name));
             dropdown.setValue(this.plugin.settings.defaultProject || "");
-            dropdown.onChange(async (value) => {
+            dropdown.onChange((value) => {
               this.plugin.settings.defaultProject = value;
-              await this.plugin.saveSettings();
+              void this.plugin.saveSettings();
             });
           });
         })
@@ -127,9 +126,9 @@ export class TodoistSettingTab extends PluginSettingTab {
         dropdown.addOption("3", "Priority 2");
         dropdown.addOption("4", "Priority 1 (Highest)");
         dropdown.setValue(String(this.plugin.settings.defaultPriority));
-        dropdown.onChange(async (value) => {
+        dropdown.onChange((value) => {
           this.plugin.settings.defaultPriority = Number(value);
-          await this.plugin.saveSettings();
+          void this.plugin.saveSettings();
         });
       });
 
@@ -142,9 +141,9 @@ export class TodoistSettingTab extends PluginSettingTab {
         dropdown.addOption("next week", "Next week");
         dropdown.addOption("no date", "No date");
         dropdown.setValue(this.plugin.settings.defaultDate);
-        dropdown.onChange(async (value) => {
+        dropdown.onChange((value) => {
           this.plugin.settings.defaultDate = value;
-          await this.plugin.saveSettings();
+          void this.plugin.saveSettings();
         });
       });
 
@@ -155,12 +154,12 @@ export class TodoistSettingTab extends PluginSettingTab {
         text
           .setPlaceholder("e.g. work, important")
           .setValue((this.plugin.settings.defaultLabels || []).join(", "))
-          .onChange(async (value) => {
+          .onChange((value) => {
             this.plugin.settings.defaultLabels = value
               .split(",")
               .map((l) => l.trim())
               .filter((l) => l.length > 0);
-            await this.plugin.saveSettings();
+            void this.plugin.saveSettings();
           });
       });
   }

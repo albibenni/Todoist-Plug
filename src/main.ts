@@ -27,7 +27,7 @@ export default class TodoistPlugin extends Plugin {
   todoistService: TodoistService | null = null;
 
   async onload() {
-    await this.loadSettings();
+    await void this.loadSettings();
 
     // Add settings tab
     this.addSettingTab(new TodoistSettingTab(this.app, this));
@@ -49,7 +49,7 @@ export default class TodoistPlugin extends Plugin {
 
         try {
           new Notice("Fetching projects from Todoist...");
-          const _projects = await this.api.getProjects();
+          await this.api.getProjects();
           new Notice(`Successfully connected!`);
         } catch (error) {
           console.error("Error connecting to Todoist:", error);
@@ -69,7 +69,7 @@ export default class TodoistPlugin extends Plugin {
       id: "open-todoist-sidebar",
       name: "Open Todoist sidebar",
       callback: () => {
-        this.activateView();
+        void this.activateView();
       },
     });
 
@@ -198,7 +198,7 @@ export default class TodoistPlugin extends Plugin {
       "todoist",
       async (source, el, ctx) => {
         if (!this.todoistService) {
-          const p = document.createElement("p");
+          const p = createEl("p");
           p.textContent = "Todoist API token is not set.";
           p.classList.add("todoist-error");
           el.appendChild(p);
@@ -208,7 +208,7 @@ export default class TodoistPlugin extends Plugin {
         const filterQuery = source.trim();
 
         // Show loading state
-        const loadingEl = document.createElement("p");
+        const loadingEl = createEl("p");
         loadingEl.textContent = "Loading tasks...";
         loadingEl.classList.add("todoist-loading");
         el.appendChild(loadingEl);
@@ -220,9 +220,9 @@ export default class TodoistPlugin extends Plugin {
           loadingEl.remove();
           // Render the HTML
           TaskRenderer.renderHTML(tasks, el, projects);
-        } catch (_error) {
+        } catch {
           loadingEl.remove();
-          const p = document.createElement("p");
+          const p = createEl("p");
           p.textContent = "Failed to load tasks.";
           p.classList.add("todoist-error");
           el.appendChild(p);
@@ -232,7 +232,7 @@ export default class TodoistPlugin extends Plugin {
   }
 
   onunload() {
-    console.log("Unloading Todoist Bridge plugin");
+    /* cleanup */
   }
 
   async activateView() {
@@ -294,7 +294,7 @@ export default class TodoistPlugin extends Plugin {
           ok: res.status >= 200 && res.status < 300,
           status: res.status,
           statusText: res.status >= 200 && res.status < 300 ? "OK" : "Error",
-          json: async () => res.json,
+          json: async () => res.json as unknown,
           text: async () => (typeof res.text === "string" ? res.text : ""),
           headers: res.headers,
         };
@@ -304,11 +304,9 @@ export default class TodoistPlugin extends Plugin {
         customFetch: customFetch,
       });
       this.todoistService = new TodoistService(this.api);
-      console.log("Todoist client initialized with Obsidian requestUrl.");
     } else {
       this.api = null;
       this.todoistService = null;
-      console.log("Todoist client not initialized: Missing API token.");
     }
   }
 

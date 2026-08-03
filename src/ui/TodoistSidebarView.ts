@@ -31,7 +31,7 @@ export class TodoistSidebarView extends ItemView {
 
     const header = container.createEl("div", { cls: "todoist-sidebar-header" });
     const headerTitle = header.createEl("h4", { text: "Todoist Today" });
-    headerTitle.style.margin = "0";
+    headerTitle.setCssStyles({ margin: "0" });
 
     const refreshBtn = header.createEl("button", { cls: "clickable-icon" });
     setIcon(refreshBtn, "refresh-cw");
@@ -70,7 +70,7 @@ export class TodoistSidebarView extends ItemView {
       } else {
         TaskRenderer.renderHTML(tasks, container, projects);
       }
-    } catch (_error) {
+    } catch {
       loading.remove();
       container.createEl("p", {
         text: "Failed to load tasks.",

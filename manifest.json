@@ -2,7 +2,7 @@
   "id": "todoist-plug",
   "name": "Todoist-Plug",
   "version": "1.0.7",
-  "minAppVersion": "1.0.0",
+  "minAppVersion": "1.6.0",
   "description": "A robust integration with Todoist for managing your tasks.",
   "author": "AlbiBenni",
   "authorUrl": "https://github.com/albibenni",
