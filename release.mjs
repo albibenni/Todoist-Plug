@@ -27,6 +27,10 @@ try {
   // This automatically triggers the "version" script which runs version-bump.mjs
   execSync(`pnpm version ${type}`, { stdio: "inherit" });
   console.log(`✅ Successfully bumped ${type} version!`);
+
+  console.log("Pushing commits and tags to GitHub...");
+  execSync("git push --follow-tags", { stdio: "inherit" });
+  console.log("✅ Successfully pushed to GitHub!");
 } catch (error) {
   console.error("❌ Failed to bump version:", error.message);
   process.exit(1);
