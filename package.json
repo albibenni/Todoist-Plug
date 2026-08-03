@@ -1,6 +1,6 @@
 {
   "name": "Todoist-Plug",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "A robust integration between Todoist and Obsidian",
   "main": "main.js",
   "type": "module",
