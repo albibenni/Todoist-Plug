@@ -22,13 +22,12 @@ export const TaskSchema = z.object({
   project_id: z.string(),
   content: z.string(),
   description: z.string().optional(),
-  is_completed: z.boolean().optional(),
+  checked: z.boolean().optional(),
   labels: z.array(z.string()).optional(),
   priority: z.number().optional(),
-  comment_count: z.number().optional(),
-  created_at: z.string().optional(),
-  url: z.string().optional(),
-  creator_id: z.string().optional(),
+  note_count: z.number().optional(),
+  added_at: z.string().optional(),
+  user_id: z.string().optional(),
   due: z
     .object({
       date: z.string(),
@@ -48,16 +47,11 @@ export const ProjectSchema = z.object({
   name: z.string(),
   color: z.string().optional(),
   parent_id: z.string().nullable().optional(),
-  order: z.number().optional(),
   child_order: z.number().optional(),
-  comment_count: z.number().optional(),
   is_shared: z.boolean().optional(),
   is_favorite: z.boolean().optional(),
-  is_inbox_project: z.boolean().optional(),
   inbox_project: z.boolean().optional(),
-  is_team_inbox: z.boolean().optional(),
   view_style: z.string().optional(),
-  url: z.string().optional(),
 });
 
 export type Project = z.infer<typeof ProjectSchema>;

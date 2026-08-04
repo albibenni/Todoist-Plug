@@ -42,13 +42,12 @@ const createMockTask = (overrides: Partial<Task>): Task => ({
   project_id: "1",
   content: "Test task",
   description: "",
-  is_completed: false,
+  checked: false,
   labels: [],
   priority: 1,
-  comment_count: 0,
-  created_at: "2023-10-27T10:00:00Z",
-  url: "https://todoist.com",
-  creator_id: "1",
+  note_count: 0,
+  added_at: "2023-10-27T10:00:00Z",
+  user_id: "1",
   ...overrides,
 });
 
@@ -56,15 +55,14 @@ describe("TaskRenderer", () => {
   const mockTask1 = createMockTask({
     id: "1",
     content: "Buy milk",
-    is_completed: false,
+    checked: false,
     priority: 1, // P4
-    url: "https://todoist.com/showTask?id=1",
   });
 
   const mockTask2 = createMockTask({
     id: "2",
     content: "Urgent meeting",
-    is_completed: true,
+    checked: true,
     priority: 4, // P1
     due: {
       string: "Today at 10am",
@@ -73,7 +71,6 @@ describe("TaskRenderer", () => {
       timezone: undefined,
       lang: "",
     },
-    url: "https://todoist.com/showTask?id=2",
   });
 
   describe("renderMarkdown", () => {

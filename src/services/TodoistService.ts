@@ -6,7 +6,15 @@ export class TodoistService {
 
   constructor(private api: TodoistApi) {}
 
-  async addQuickTask(text: string, settings?: { project_id?: string; due_string?: string; priority?: number; labels?: string[] }): Promise<Task> {
+  async addQuickTask(
+    text: string,
+    settings?: {
+      project_id?: string;
+      due_string?: string;
+      priority?: number;
+      labels?: string[];
+    },
+  ): Promise<Task> {
     if (!text.trim()) {
       throw new Error("Task text cannot be empty");
     }

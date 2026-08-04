@@ -58,13 +58,13 @@ export class TaskRenderer {
 
     return tasks
       .map((task) => {
-        const checkbox = task.is_completed ? "[x]" : "[ ]";
+        const checkbox = task.checked ? "[x]" : "[ ]";
 
         // Build the task string
         let taskString = `- ${checkbox} ${task.content}`;
 
         // Append priority if higher than 1 (1 is normal)
-        if (task.priority > 1) {
+        if (task.priority && task.priority > 1) {
           const p = 5 - task.priority; // Todoist API priority is inverted (4 = P1, 3 = P2, 2 = P3, 1 = P4)
           taskString += ` **(p${p})**`;
         }
@@ -76,9 +76,8 @@ export class TaskRenderer {
         }
 
         // Add a direct link to the task in the web app
-        if (task.url) {
-          taskString += ` [🔗](${task.url})`;
-        }
+        const url = `https://todoist.com/showTask?id=${task.id}`;
+        taskString += ` [🔗](${url})`;
 
         return taskString;
       })
@@ -113,14 +112,16 @@ export class TaskRenderer {
       });
 
       const checkbox = li.createEl("input", { type: "checkbox" });
-      checkbox.checked = !!task.is_completed;
+      checkbox.checked = !!task.checked;
       checkbox.disabled = true;
 
       li.createSpan({ text: task.content, cls: "todoist-task-content" });
 
       const metadataContainer = li.createSpan({ cls: "todoist-task-metadata" });
 
-      const project = task.project_id ? projectsMap[task.project_id] : undefined;
+      const project = task.project_id
+        ? projectsMap[task.project_id]
+        : undefined;
       if (project) {
         metadataContainer.createSpan({
           text: `#${project.name}`,

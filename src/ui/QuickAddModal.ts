@@ -187,7 +187,7 @@ export class QuickAddModal extends Modal {
     let projectsCache: Project[] = [];
     void this.service.getProjects().then((projects) => {
       projectsCache = projects.filter(
-        (p) => p.name !== "Inbox" && !p.is_inbox_project,
+        (p) => p.name !== "Inbox" && !p.inbox_project,
       );
       const proj = projects.find((p) => p.id === this.projectId);
       if (proj) {
