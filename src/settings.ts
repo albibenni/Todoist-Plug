@@ -1,10 +1,10 @@
 import {
   App,
   PluginSettingTab,
+  SecretComponent,
   Setting,
   type SettingDefinitionItem,
   setIcon,
-  SecretComponent,
 } from "obsidian";
 import type TodoistPlugin from "./main";
 
@@ -22,68 +22,9 @@ export class TodoistSettingTab extends PluginSettingTab {
     containerEl.empty();
     containerEl.addClass("todoist-settings-tab");
 
-    const linksSetting = new Setting(containerEl)
-      .setName("Links")
-      .setDesc("Helpful links and resources for Todoist Plug.");
-
-    linksSetting.addButton((btn) => {
-      btn
-        .setButtonText("Docs")
-        .setTooltip("View documentation")
-        .setCta()
-        .setClass("todoist-settings-btn")
-        .onClick(() =>
-          window.open("https://github.com/albibenni/Todoist-Plug#readme"),
-        );
-      const icon = btn.buttonEl.createSpan();
-      setIcon(icon, "book-open");
-      btn.buttonEl.prepend(icon);
-    });
-
-    linksSetting.addButton((btn) => {
-      btn
-        .setButtonText("Feedback")
-        .setTooltip("Report an issue")
-        .setCta()
-        .setClass("todoist-settings-btn")
-        .onClick(() =>
-          window.open("https://github.com/albibenni/Todoist-Plug/issues"),
-        );
-      const icon = btn.buttonEl.createSpan();
-      setIcon(icon, "github");
-      btn.buttonEl.prepend(icon);
-    });
-
-    linksSetting.addButton((btn) => {
-      btn
-        .setButtonText("Donate")
-        .setTooltip("Support development")
-        .setCta()
-        .setClass("todoist-settings-btn")
-        .onClick(() =>
-          window.open(
-            "https://www.paypal.com/donate/?cmd=_donations&business=JEUGAV9HY5YFU&currency_code=EUR&source=url",
-          ),
-        );
-      const icon = btn.buttonEl.createSpan();
-      setIcon(icon, "coffee");
-      btn.buttonEl.prepend(icon);
-    });
-
-    const apiSetting = new Setting(containerEl)
-      .setName("API token")
-      .setDesc("Select a secret from SecretStorage")
-      .addComponent((el) =>
-        new SecretComponent(this.app, el)
-          .setValue(this.plugin.settings.apiToken || "")
-          .onChange((value) => {
-            this.plugin.settings.apiToken = value;
-            void this.plugin.saveSettings();
-            this.plugin.initTodoistClient();
-          })
-      );
-
+    this.apiToken(containerEl);
     new Setting(containerEl).setName("Default Settings").setHeading();
+    this.linksSetting(containerEl);
 
     const projectSetting = new Setting(containerEl)
       .setName("Default Project")
@@ -115,6 +56,74 @@ export class TodoistSettingTab extends PluginSettingTab {
         });
     }
 
+    this.defPriority(containerEl);
+    this.defDate(containerEl);
+    this.defLabels(containerEl);
+  }
+
+  private linksSetting(containerEl: HTMLElement) {
+    const linksSetting = new Setting(containerEl)
+      .setName("Links")
+      .setDesc("Helpful links and resources for Todoist Plug.");
+
+    linksSetting.addButton((btn) => {
+      btn
+        .setButtonText("Docs")
+        .setTooltip("View documentation")
+        .setCta()
+        .setClass("todoist-settings-btn")
+        .onClick(() =>
+          window.open("https://github.com/albibenni/Todoist-Plug#readme"),
+        );
+      const icon = btn.buttonEl.createSpan();
+      setIcon(icon, "book-open");
+      btn.buttonEl.prepend(icon);
+    });
+    linksSetting.addButton((btn) => {
+      btn
+        .setButtonText("Feedback")
+        .setTooltip("Report an issue")
+        .setCta()
+        .setClass("todoist-settings-btn")
+        .onClick(() =>
+          window.open("https://github.com/albibenni/Todoist-Plug/issues"),
+        );
+      const icon = btn.buttonEl.createSpan();
+      setIcon(icon, "github");
+      btn.buttonEl.prepend(icon);
+    });
+
+    linksSetting.addButton((btn) => {
+      btn
+        .setButtonText("Donate")
+        .setTooltip("Support development")
+        .setCta()
+        .setClass("todoist-settings-btn")
+        .onClick(() =>
+          window.open(
+            "https://www.paypal.com/donate/?cmd=_donations&business=JEUGAV9HY5YFU&currency_code=EUR&source=url",
+          ),
+        );
+      const icon = btn.buttonEl.createSpan();
+      setIcon(icon, "coffee");
+      btn.buttonEl.prepend(icon);
+    });
+  }
+  private apiToken(containerEl: HTMLElement) {
+    new Setting(containerEl)
+      .setName("API token")
+      .setDesc("Select a secret from SecretStorage")
+      .addComponent((el) =>
+        new SecretComponent(this.app, el)
+          .setValue(this.plugin.settings.apiToken || "")
+          .onChange((value) => {
+            this.plugin.settings.apiToken = value;
+            void this.plugin.saveSettings();
+            void this.plugin.initTodoistClient();
+          }),
+      );
+  }
+  private defPriority(containerEl: HTMLElement) {
     new Setting(containerEl)
       .setName("Default Priority")
       .setDesc(
@@ -131,7 +140,8 @@ export class TodoistSettingTab extends PluginSettingTab {
           void this.plugin.saveSettings();
         });
       });
-
+  }
+  private defDate(containerEl: HTMLElement) {
     new Setting(containerEl)
       .setName("Default Date")
       .setDesc("The default due date string for new tasks.")
@@ -146,7 +156,8 @@ export class TodoistSettingTab extends PluginSettingTab {
           void this.plugin.saveSettings();
         });
       });
-
+  }
+  private defLabels(containerEl: HTMLElement) {
     new Setting(containerEl)
       .setName("Default Labels")
       .setDesc("Comma-separated list of labels to apply by default.")
