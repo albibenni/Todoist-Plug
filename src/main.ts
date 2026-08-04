@@ -33,7 +33,7 @@ export default class TodoistPlugin extends Plugin {
     this.addSettingTab(new TodoistSettingTab(this.app, this));
 
     // Initialize Todoist client
-    this.initTodoistClient();
+    await this.initTodoistClient();
 
     // Command to setup API token
     this.addCommand({
@@ -269,14 +269,14 @@ export default class TodoistPlugin extends Plugin {
     }
   }
 
-  getApiToken(): string | null {
+  async getApiToken(): Promise<string | null> {
     if (!this.settings.apiToken) return null;
     // @ts-ignore - secretStorage is an undocumented Obsidian API
-    return this.app.secretStorage.getSecret(this.settings.apiToken);
+    return await this.app.secretStorage.getSecret(this.settings.apiToken);
   }
 
-  initTodoistClient() {
-    const token = this.getApiToken();
+  async initTodoistClient() {
+    const token = await this.getApiToken();
     if (token) {
       this.api = new TodoistApi(token);
       this.todoistService = new TodoistService(this.api);
