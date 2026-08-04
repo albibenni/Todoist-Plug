@@ -37,12 +37,12 @@ describe("TodoistPlugin Token Logic", () => {
   });
 
   describe("getApiToken", () => {
-    it("should securely retrieve the token from app.secretStorage", async () => {
+    it("should securely retrieve the token from app.secretStorage", () => {
       // @ts-ignore
-      appMock.secretStorage.getSecret.mockResolvedValue("test-token");
+      appMock.secretStorage.getSecret.mockReturnValue("test-token");
       plugin.settings.apiToken = "my-secret-name";
 
-      const token = await plugin.getApiToken();
+      const token = plugin.getApiToken();
 
       expect(appMock.secretStorage.getSecret).toHaveBeenCalledWith(
         "my-secret-name",
@@ -52,25 +52,25 @@ describe("TodoistPlugin Token Logic", () => {
   });
 
   describe("initTodoistClient", () => {
-    it("should initialize clients if token exists", async () => {
+    it("should initialize clients if token exists", () => {
       // @ts-ignore
-      appMock.secretStorage.getSecret.mockResolvedValue("test-token");
+      appMock.secretStorage.getSecret.mockReturnValue("test-token");
 
-      await plugin.initTodoistClient();
+      plugin.initTodoistClient();
 
       expect(plugin.api).not.toBeNull();
       expect(plugin.todoistService).not.toBeNull();
     });
 
-    it("should set clients to null if no token exists", async () => {
+    it("should set clients to null if no token exists", () => {
       // @ts-ignore
-      appMock.secretStorage.getSecret.mockResolvedValue(null);
+      appMock.secretStorage.getSecret.mockReturnValue(null);
 
       // Pre-fill with fake data to verify it gets wiped
       plugin.api = {} as TodoistApi;
       plugin.todoistService = {} as TodoistService;
 
-      await plugin.initTodoistClient();
+      plugin.initTodoistClient();
 
       expect(plugin.api).toBeNull();
       expect(plugin.todoistService).toBeNull();
