@@ -1,10 +1,8 @@
 import {
-  App,
   type Editor,
   MarkdownView,
   Notice,
   Plugin,
-  requestUrl,
   type WorkspaceLeaf,
 } from "obsidian";
 import { TodoistApi } from "./api";
@@ -40,7 +38,9 @@ export default class TodoistPlugin extends Plugin {
       id: "setup-api-token",
       name: "Setup API token",
       callback: () => {
-        new Notice("Please go to the plugin settings to configure your Todoist API token.");
+        new Notice(
+          "Please go to the plugin settings to configure your Todoist API token.",
+        );
       },
     });
 
