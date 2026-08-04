@@ -23,7 +23,7 @@ export class TodoistSettingTab extends PluginSettingTab {
     containerEl.addClass("todoist-settings-tab");
 
     this.apiToken(containerEl);
-    new Setting(containerEl).setName("Default Settings").setHeading();
+    new Setting(containerEl).setName("Defaults").setHeading();
     this.linksSetting(containerEl);
 
     const projectSetting = new Setting(containerEl)
