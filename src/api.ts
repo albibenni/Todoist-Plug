@@ -45,7 +45,7 @@ export class TodoistApi {
     let data: unknown;
     try {
       data = res.json ?? JSON.parse(res.text);
-    } catch (_e) {
+    } catch {
       console.error("Failed to parse JSON response:", res.text);
       throw new Error(`Invalid JSON response: ${res.text}`);
     }
