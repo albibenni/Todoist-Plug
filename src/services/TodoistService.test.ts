@@ -4,7 +4,7 @@ import { TodoistService } from "./TodoistService";
 
 describe("TodoistService", () => {
   let mockApi: {
-    quickAddTask: ReturnType<typeof vi.fn>;
+    addTask: ReturnType<typeof vi.fn>;
     getTasks: ReturnType<typeof vi.fn>;
     getTasksByFilter: ReturnType<typeof vi.fn>;
   };
@@ -12,7 +12,7 @@ describe("TodoistService", () => {
 
   beforeEach(() => {
     mockApi = {
-      quickAddTask: vi.fn(),
+      addTask: vi.fn(),
       getTasks: vi.fn(),
       getTasksByFilter: vi.fn(),
     };
@@ -20,14 +20,14 @@ describe("TodoistService", () => {
   });
 
   describe("addQuickTask", () => {
-    it("should call api.quickAddTask with the provided text", async () => {
+    it("should create a structured task with the provided text", async () => {
       const mockTask = { id: "123", content: "Buy milk" };
-      mockApi.quickAddTask.mockResolvedValue(mockTask);
+      mockApi.addTask.mockResolvedValue(mockTask);
 
       const result = await service.addQuickTask("Buy milk #groceries @today");
 
-      expect(mockApi.quickAddTask).toHaveBeenCalledWith({
-        text: "Buy milk #groceries @today",
+      expect(mockApi.addTask).toHaveBeenCalledWith({
+        content: "Buy milk #groceries @today",
       });
       expect(result).toEqual(mockTask);
     });
@@ -36,11 +36,11 @@ describe("TodoistService", () => {
       await expect(service.addQuickTask("   ")).rejects.toThrow(
         "Task text cannot be empty",
       );
-      expect(mockApi.quickAddTask).not.toHaveBeenCalled();
+      expect(mockApi.addTask).not.toHaveBeenCalled();
     });
 
     it("should handle API failures gracefully", async () => {
-      mockApi.quickAddTask.mockRejectedValue(new Error("Network error"));
+      mockApi.addTask.mockRejectedValue(new Error("Network error"));
       await expect(service.addQuickTask("Buy milk")).rejects.toThrow(
         "Failed to add task to Todoist",
       );
@@ -109,11 +109,12 @@ describe("TodoistService", () => {
       expect(result).toBe(true);
     });
 
-    it("should handle API errors gracefully and return false", async () => {
+    it("should report API errors instead of treating them as no match", async () => {
       mockApi.getTasksByFilter.mockRejectedValue(new Error("API Error"));
 
-      const result = await service.checkTaskExists("Buy milk");
-      expect(result).toBe(false);
+      await expect(service.checkTaskExists("Buy milk")).rejects.toThrow(
+        "Failed to check task existence in Todoist",
+      );
     });
   });
 });

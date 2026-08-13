@@ -20,7 +20,7 @@ export class TodoistService {
     }
 
     try {
-      return await this.api.quickAddTask({ text, ...settings });
+      return await this.api.addTask({ content: text, ...settings });
     } catch (error) {
       console.error("Failed to add quick task:", error);
       throw new Error("Failed to add task to Todoist");
@@ -66,7 +66,7 @@ export class TodoistService {
       return exists;
     } catch (error) {
       console.error("Failed to check task existence:", error);
-      return false;
+      throw new Error("Failed to check task existence in Todoist");
     }
   }
 

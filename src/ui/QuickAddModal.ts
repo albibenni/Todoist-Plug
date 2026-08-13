@@ -10,6 +10,10 @@ export class QuickAddModal extends Modal {
   private priority = 1;
   private projectId = "";
   private labels: string[] = [];
+  private dueTime = "";
+  private isSubmitting = false;
+  private submitButton: HTMLButtonElement | null = null;
+  private popoverCleanups = new Set<() => void>();
 
   private service: TodoistService;
   private initialUrl: string;
@@ -27,7 +31,8 @@ export class QuickAddModal extends Modal {
     this.initialUrl = initialUrl;
 
     this.taskTitle = initialTitle;
-    this.dueDate = settings.defaultDate || "today";
+    this.dueDate =
+      settings.defaultDate === "no date" ? "" : settings.defaultDate || "today";
     this.priority = settings.defaultPriority || 1;
     this.projectId = settings.defaultProject || "";
     this.labels = [...(settings.defaultLabels || [])];
@@ -63,9 +68,12 @@ export class QuickAddModal extends Modal {
     };
 
     let labelsCache: Label[] = [];
-    void this.service.getLabels().then((labels) => {
-      labelsCache = labels;
-    });
+    void this.service
+      .getLabels()
+      .then((labels) => {
+        labelsCache = labels;
+      })
+      .catch(() => new Notice("Failed to load Todoist labels."));
 
     // Title
     const nameGroup = root.createDiv("task-content-input task-name");
@@ -101,13 +109,13 @@ export class QuickAddModal extends Modal {
     setIcon(dateBtnIcon, "calendar");
     const dateLabel = this.dueDate
       ? this.dueDate.charAt(0).toUpperCase() + this.dueDate.slice(1)
-      : "Today";
+      : "No date";
     const dateLabelSpan = dateBtn.createSpan("date-label");
     dateLabelSpan.textContent = dateLabel;
 
     dateBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      this.showDatePopover(dateContainer, dateBtn);
+      this.showDatePopover(dateBtn);
     });
 
     const priorities = [
@@ -185,18 +193,21 @@ export class QuickAddModal extends Modal {
     setIcon(chevronIcon, "chevron-down");
 
     let projectsCache: Project[] = [];
-    void this.service.getProjects().then((projects) => {
-      projectsCache = projects.filter(
-        (p) => p.name !== "Inbox" && !p.inbox_project,
-      );
-      const proj = projects.find((p) => p.id === this.projectId);
-      if (proj) {
-        projectLabel.textContent = proj.name;
-        if (proj.color && TODOIST_COLORS[proj.color]) {
-          projectIcon.setCssStyles({ color: TODOIST_COLORS[proj.color]! });
+    void this.service
+      .getProjects()
+      .then((projects) => {
+        projectsCache = projects.filter(
+          (p) => p.name !== "Inbox" && !p.inbox_project,
+        );
+        const proj = projects.find((p) => p.id === this.projectId);
+        if (proj) {
+          projectLabel.textContent = proj.name;
+          if (proj.color && TODOIST_COLORS[proj.color]) {
+            projectIcon.setCssStyles({ color: TODOIST_COLORS[proj.color]! });
+          }
         }
-      }
-    });
+      })
+      .catch(() => new Notice("Failed to load Todoist projects."));
 
     projectBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -263,6 +274,7 @@ export class QuickAddModal extends Modal {
     const addBtn = actionGrp.createEl("button");
     addBtn.addClass("mod-cta");
     addBtn.textContent = "Add task";
+    this.submitButton = addBtn;
     addBtn.addEventListener("click", () => void this.submitTask());
 
     // Focus and resize initially
@@ -293,13 +305,10 @@ export class QuickAddModal extends Modal {
     projects: Project[],
     colors: Record<string, string>,
   ) {
-    if (document.body.querySelector(".task-project-menu")) {
-      document.body.querySelector(".task-project-menu")?.remove();
+    if (this.popoverCleanups.size > 0) {
+      this.closePopovers();
       return;
     }
-    document
-      .querySelectorAll(".task-option-dialog")
-      .forEach((el) => el.remove());
 
     const popover = btn.ownerDocument.body.createDiv(
       "task-option-dialog task-project-menu",
@@ -366,17 +375,7 @@ export class QuickAddModal extends Modal {
       renderProjects((e.target as HTMLInputElement).value);
     });
 
-    const closePopover = (e: MouseEvent) => {
-      if (!popover.contains(e.target as Node)) {
-        popover.remove();
-        btn.ownerDocument.removeEventListener("click", closePopover);
-      }
-    };
-
-    window.setTimeout(() => {
-      btn.ownerDocument.addEventListener("click", closePopover);
-      searchInput.focus();
-    }, 0);
+    this.registerPopover(popover, btn.ownerDocument, searchInput);
   }
 
   private showLabelPopover(
@@ -385,13 +384,10 @@ export class QuickAddModal extends Modal {
     labels: Label[],
     colors: Record<string, string>,
   ) {
-    if (document.body.querySelector(".task-label-menu")) {
-      document.body.querySelector(".task-label-menu")?.remove();
+    if (this.popoverCleanups.size > 0) {
+      this.closePopovers();
       return;
     }
-    document
-      .querySelectorAll(".task-option-dialog")
-      .forEach((el) => el.remove());
 
     const popover = btn.ownerDocument.body.createDiv(
       "task-option-dialog task-label-menu task-project-menu",
@@ -455,27 +451,14 @@ export class QuickAddModal extends Modal {
       renderLabels((e.target as HTMLInputElement).value);
     });
 
-    const closePopover = (e: MouseEvent) => {
-      if (!popover.contains(e.target as Node)) {
-        popover.remove();
-        btn.ownerDocument.removeEventListener("click", closePopover);
-      }
-    };
-
-    window.setTimeout(() => {
-      btn.ownerDocument.addEventListener("click", closePopover);
-      searchInput.focus();
-    }, 0);
+    this.registerPopover(popover, btn.ownerDocument, searchInput);
   }
 
-  private showDatePopover(container: HTMLElement, btn: HTMLButtonElement) {
-    if (container.querySelector(".task-date-menu")) {
-      container.querySelector(".task-date-menu")?.remove();
+  private showDatePopover(btn: HTMLButtonElement) {
+    if (this.popoverCleanups.size > 0) {
+      this.closePopovers();
       return;
     }
-    document
-      .querySelectorAll(".task-option-dialog")
-      .forEach((el) => el.remove());
 
     const popover = btn.ownerDocument.body.createDiv(
       "task-option-dialog task-date-menu",
@@ -611,31 +594,58 @@ export class QuickAddModal extends Modal {
 
     popover.createEl("hr");
     const timeContainer = popover.createDiv("time-picker-container");
-    const timeBtn = timeContainer.createEl("button");
-    timeBtn.addClass("time-picker-button");
-    const timeIconSpan = timeBtn.createSpan("obsidian-icon");
+    const timeIconSpan = timeContainer.createSpan("obsidian-icon");
     setIcon(timeIconSpan, "clock");
-    timeBtn.createSpan().textContent = "Time";
-    timeBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
+    const timeInput = timeContainer.createEl("input", { type: "time" });
+    timeInput.value = this.dueTime;
+    timeInput.addEventListener("change", () => {
+      if (!this.dueDate) {
+        timeInput.value = "";
+        new Notice("Select a date before adding a time.");
+        return;
+      }
+      this.dueTime = timeInput.value;
     });
 
-    const closePopover = (e: MouseEvent) => {
-      if (!popover.contains(e.target as Node)) {
-        popover.remove();
-        btn.ownerDocument.removeEventListener("click", closePopover);
-      }
-    };
+    this.registerPopover(popover, btn.ownerDocument);
+  }
 
-    window.setTimeout(() => {
-      btn.ownerDocument.addEventListener("click", closePopover);
+  private registerPopover(
+    popover: HTMLElement,
+    ownerDocument: Document,
+    focusElement?: HTMLElement,
+  ) {
+    let timeoutId: number | undefined;
+    const closePopover = (event: MouseEvent) => {
+      if (!popover.contains(event.target as Node)) cleanup();
+    };
+    const cleanup = () => {
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      popover.remove();
+      ownerDocument.removeEventListener("click", closePopover);
+      this.popoverCleanups.delete(cleanup);
+    };
+    this.popoverCleanups.add(cleanup);
+    timeoutId = window.setTimeout(() => {
+      ownerDocument.addEventListener("click", closePopover);
+      focusElement?.focus();
     }, 0);
+  }
+
+  private closePopovers() {
+    for (const cleanup of [...this.popoverCleanups]) cleanup();
   }
 
   private async submitTask() {
     if (!this.taskTitle.trim()) {
       new Notice("Task title cannot be empty");
       return;
+    }
+    if (this.isSubmitting) return;
+    this.isSubmitting = true;
+    if (this.submitButton) {
+      this.submitButton.disabled = true;
+      this.submitButton.textContent = "Adding task...";
     }
 
     let finalDesc = this.taskDesc;
@@ -648,7 +658,11 @@ export class QuickAddModal extends Modal {
       content: this.taskTitle,
       description: finalDesc,
       priority: this.priority,
-      due_string: this.dueDate || undefined,
+      due_string: this.dueDate
+        ? this.dueTime
+          ? `${this.dueDate} at ${this.dueTime}`
+          : this.dueDate
+        : undefined,
     };
 
     if (this.projectId) {
@@ -666,10 +680,18 @@ export class QuickAddModal extends Modal {
       this.close();
     } catch {
       new Notice("Failed to add task. Check your connection and token.");
+    } finally {
+      this.isSubmitting = false;
+      if (this.submitButton) {
+        this.submitButton.disabled = false;
+        this.submitButton.textContent = "Add task";
+      }
     }
   }
 
   onClose() {
+    this.closePopovers();
+    this.submitButton = null;
     const { contentEl } = this;
     contentEl.empty();
   }

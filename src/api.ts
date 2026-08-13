@@ -39,53 +39,51 @@ export class TodoistApi {
     const res = await requestUrl(req);
 
     if (res.status >= 400) {
-      throw new Error(`Todoist API error: ${res.status} ${res.text}`);
+      throw new Error(`Todoist API error: ${res.status}`);
     }
 
     let data: unknown;
     try {
       data = res.json ?? JSON.parse(res.text);
     } catch {
-      console.error("Failed to parse JSON response:", res.text);
-      throw new Error(`Invalid JSON response: ${res.text}`);
+      throw new Error("Todoist API returned an invalid JSON response");
     }
 
     return schema.parse(data);
   }
 
+  private async getAll<T>(endpoint: string, itemSchema: z.ZodType<T>) {
+    const pageSchema = z.object({
+      results: z.array(itemSchema),
+      next_cursor: z.string().nullable(),
+    });
+    const results: T[] = [];
+    let cursor: string | null = null;
+
+    do {
+      const separator = endpoint.includes("?") ? "&" : "?";
+      const cursorParam: string = cursor
+        ? `${separator}cursor=${encodeURIComponent(cursor)}`
+        : "";
+      const page: { results: T[]; next_cursor: string | null } =
+        await this.request("GET", `${endpoint}${cursorParam}`, pageSchema);
+      results.push(...page.results);
+      cursor = page.next_cursor;
+    } while (cursor);
+
+    return results;
+  }
+
   async getProjects(): Promise<Project[]> {
-    return await this.request<Project[]>(
-      "GET",
-      "/projects",
-      z.union([
-        z.array(ProjectSchema),
-        z
-          .object({ results: z.array(ProjectSchema) })
-          .transform((d) => d.results),
-      ]),
-    );
+    return await this.getAll("/projects", ProjectSchema);
   }
 
   async getLabels(): Promise<Label[]> {
-    return await this.request<Label[]>(
-      "GET",
-      "/labels",
-      z.union([
-        z.array(LabelSchema),
-        z.object({ results: z.array(LabelSchema) }).transform((d) => d.results),
-      ]),
-    );
+    return await this.getAll("/labels", LabelSchema);
   }
 
   async getTasks(): Promise<Task[]> {
-    return await this.request<Task[]>(
-      "GET",
-      "/tasks",
-      z.union([
-        z.array(TaskSchema),
-        z.object({ results: z.array(TaskSchema) }).transform((d) => d.results),
-      ]),
-    );
+    return await this.getAll("/tasks", TaskSchema);
   }
 
   //TODO:
@@ -115,13 +113,9 @@ Examples: limit=50
 The number of objects to return in a page
 */
   async getTasksByFilter(args: { query: string }): Promise<Task[]> {
-    return await this.request<Task[]>(
-      "GET",
-      `/tasks?filter=${encodeURIComponent(args.query)}`,
-      z.union([
-        z.array(TaskSchema),
-        z.object({ results: z.array(TaskSchema) }).transform((d) => d.results),
-      ]),
+    return await this.getAll(
+      `/tasks/filter?query=${encodeURIComponent(args.query)}`,
+      TaskSchema,
     );
   }
   //TODO: add task
@@ -207,31 +201,5 @@ The number of objects to return in a page
   // }
   async addTask(args: AddTaskArgs): Promise<Task> {
     return await this.request<Task>("POST", "/tasks", TaskSchema, args);
-  }
-
-  async quickAddTask(args: {
-    text: string;
-    project_id?: string;
-    due_string?: string;
-    priority?: number;
-    labels?: string[];
-  }): Promise<Task> {
-    const payload: Record<string, unknown> = {
-      content: args.text,
-      project_id: args.project_id,
-      due_string: args.due_string,
-      priority: args.priority,
-      labels: args.labels,
-    };
-    Object.keys(payload).forEach(
-      (key) => payload[key] === undefined && delete payload[key],
-    );
-
-    return await this.request<Task>(
-      "POST",
-      "/tasks/quick",
-      TaskSchema,
-      payload,
-    );
   }
 }

@@ -3,7 +3,6 @@ import {
   PluginSettingTab,
   SecretComponent,
   Setting,
-  type SettingDefinitionItem,
   setIcon,
 } from "obsidian";
 import type TodoistPlugin from "./main";
@@ -173,10 +172,5 @@ export class TodoistSettingTab extends PluginSettingTab {
             void this.plugin.saveSettings();
           });
       });
-  }
-
-  // Implement getSettingDefinitions to support settings search in Obsidian 1.13.0+
-  getSettingDefinitions(): SettingDefinitionItem[] {
-    return [];
   }
 }
