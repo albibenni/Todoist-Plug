@@ -52,17 +52,17 @@ describe("TodoistPlugin Token Logic", () => {
   });
 
   describe("initTodoistClient", () => {
-    it("should initialize clients if token exists", () => {
+    it("should initialize clients if a token exists", async () => {
       // @ts-ignore
       appMock.secretStorage.getSecret.mockReturnValue("test-token");
 
-      plugin.initTodoistClient();
+      await plugin.initTodoistClient();
 
       expect(plugin.api).not.toBeNull();
       expect(plugin.todoistService).not.toBeNull();
     });
 
-    it("should set clients to null if no token exists", () => {
+    it("should set clients to null if no token exists", async () => {
       // @ts-ignore
       appMock.secretStorage.getSecret.mockReturnValue(null);
 
@@ -70,7 +70,7 @@ describe("TodoistPlugin Token Logic", () => {
       plugin.api = {} as TodoistApi;
       plugin.todoistService = {} as TodoistService;
 
-      plugin.initTodoistClient();
+      await plugin.initTodoistClient();
 
       expect(plugin.api).toBeNull();
       expect(plugin.todoistService).toBeNull();

@@ -2,10 +2,18 @@ import {
   type Editor,
   MarkdownView,
   Notice,
+  type ObsidianProtocolData,
   Plugin,
   type WorkspaceLeaf,
 } from "obsidian";
 import { TodoistApi } from "./api";
+import {
+  createAuthorizationRequest,
+  exchangeAuthorizationCode,
+  OAUTH_PROTOCOL_ACTION,
+  type OAuthTokens,
+  refreshAccessToken,
+} from "./oauth";
 import { TodoistService } from "./services/TodoistService";
 import { TodoistSettingTab } from "./settings";
 import {
@@ -23,6 +31,11 @@ export default class TodoistPlugin extends Plugin {
   settings!: TodoistPluginSettings;
   api: TodoistApi | null = null;
   todoistService: TodoistService | null = null;
+  private pendingOAuth: { state: string; verifier: string } | null = null;
+  private oauthRefreshTimer: number | null = null;
+
+  private readonly oauthAccessTokenSecret = "todoist-plug-oauth-access-token";
+  private readonly oauthRefreshTokenSecret = "todoist-plug-oauth-refresh-token";
 
   async onload() {
     await this.loadSettings();
@@ -30,8 +43,12 @@ export default class TodoistPlugin extends Plugin {
     // Add settings tab
     this.addSettingTab(new TodoistSettingTab(this.app, this));
 
+    this.registerObsidianProtocolHandler(OAUTH_PROTOCOL_ACTION, (params) => {
+      void this.handleOAuthCallback(params);
+    });
+
     // Initialize Todoist client
-    this.initTodoistClient();
+    await this.initTodoistClient();
 
     // Command to setup API token
     this.addCommand({
@@ -42,6 +59,18 @@ export default class TodoistPlugin extends Plugin {
           "Please go to the plugin settings to configure your Todoist API token.",
         );
       },
+    });
+
+    this.addCommand({
+      id: "connect-todoist",
+      name: "Connect Todoist with OAuth",
+      callback: () => void this.startOAuthConnection(),
+    });
+
+    this.addCommand({
+      id: "disconnect-todoist",
+      name: "Disconnect Todoist",
+      callback: () => void this.disconnectTodoist(),
     });
 
     // Add a command to verify the connection
@@ -246,7 +275,9 @@ export default class TodoistPlugin extends Plugin {
   }
 
   onunload() {
-    /* cleanup */
+    if (this.oauthRefreshTimer !== null) {
+      window.clearTimeout(this.oauthRefreshTimer);
+    }
   }
 
   async activateView() {
@@ -271,21 +302,171 @@ export default class TodoistPlugin extends Plugin {
 
   getApiToken(): string | null {
     if (!this.settings.apiToken) return null;
-    const appWithSecrets = this.app as typeof this.app & {
-      secretStorage: { getSecret: (key: string) => string | null };
-    };
-    return appWithSecrets.secretStorage.getSecret(this.settings.apiToken);
+    return this.app.secretStorage.getSecret(this.settings.apiToken);
   }
 
-  initTodoistClient() {
-    const token = this.getApiToken();
+  async startOAuthConnection() {
+    const authorizationWindow = window.open("", "_blank");
+    try {
+      const request = await createAuthorizationRequest();
+      this.pendingOAuth = { state: request.state, verifier: request.verifier };
+      if (authorizationWindow) {
+        authorizationWindow.location.replace(request.authorizationUrl);
+      } else {
+        window.location.assign(request.authorizationUrl);
+      }
+    } catch (error) {
+      authorizationWindow?.close();
+      console.error("Failed to start Todoist OAuth:", error);
+      new Notice("Could not open Todoist authorization.");
+    }
+  }
+
+  private async handleOAuthCallback(params: ObsidianProtocolData) {
+    const code = typeof params.code === "string" ? params.code : undefined;
+    const error = typeof params.error === "string" ? params.error : undefined;
+    const state = typeof params.state === "string" ? params.state : undefined;
+    if (error) {
+      this.pendingOAuth = null;
+      new Notice("Todoist authorization was cancelled or denied.");
+      return;
+    }
+    if (
+      !code ||
+      !state ||
+      !this.pendingOAuth ||
+      state !== this.pendingOAuth.state
+    ) {
+      new Notice(
+        "Todoist authorization could not be verified. Please try again.",
+      );
+      return;
+    }
+
+    try {
+      const tokens = await exchangeAuthorizationCode(
+        code,
+        this.pendingOAuth.verifier,
+      );
+      await this.saveOAuthTokens(tokens);
+      await this.initTodoistClient();
+      new Notice("Todoist connected successfully.");
+    } catch (error) {
+      console.error("Failed to complete Todoist OAuth:", error);
+      new Notice("Failed to connect Todoist. Please try again.");
+    } finally {
+      this.pendingOAuth = null;
+    }
+  }
+
+  private async saveOAuthTokens(tokens: OAuthTokens) {
+    this.app.secretStorage.setSecret(
+      this.oauthAccessTokenSecret,
+      tokens.access_token,
+    );
+    this.app.secretStorage.setSecret(
+      this.oauthRefreshTokenSecret,
+      tokens.refresh_token,
+    );
+    this.settings.oauthAccessTokenSecret = this.oauthAccessTokenSecret;
+    this.settings.oauthRefreshTokenSecret = this.oauthRefreshTokenSecret;
+    this.settings.oauthExpiresAt = Date.now() + tokens.expires_in * 1000;
+    await this.saveSettings();
+    this.scheduleOAuthRefresh();
+  }
+
+  private scheduleOAuthRefresh() {
+    if (this.oauthRefreshTimer !== null) {
+      window.clearTimeout(this.oauthRefreshTimer);
+      this.oauthRefreshTimer = null;
+    }
+    if (!this.settings.oauthExpiresAt) return;
+
+    const refreshInMs = Math.max(
+      0,
+      this.settings.oauthExpiresAt - Date.now() - 60_000,
+    );
+    this.oauthRefreshTimer = window.setTimeout(() => {
+      void this.refreshOAuthConnection();
+    }, refreshInMs);
+  }
+
+  private async refreshOAuthConnection(): Promise<string | null> {
+    const refreshToken = this.settings.oauthRefreshTokenSecret
+      ? this.app.secretStorage.getSecret(this.settings.oauthRefreshTokenSecret)
+      : null;
+    if (!refreshToken) return null;
+
+    try {
+      const tokens = await refreshAccessToken(refreshToken);
+      await this.saveOAuthTokens(tokens);
+      await this.initTodoistClient();
+      return tokens.access_token;
+    } catch (error) {
+      console.error("Failed to refresh Todoist OAuth token:", error);
+      return null;
+    }
+  }
+
+  private async getOAuthAccessToken(): Promise<string | null> {
+    if (!this.settings.oauthAccessTokenSecret) return null;
+    const accessToken = this.app.secretStorage.getSecret(
+      this.settings.oauthAccessTokenSecret,
+    );
+    const expiryBufferMs = 60_000;
+    if (
+      accessToken &&
+      (!this.settings.oauthExpiresAt ||
+        this.settings.oauthExpiresAt > Date.now() + expiryBufferMs)
+    ) {
+      this.scheduleOAuthRefresh();
+      return accessToken;
+    }
+
+    const refreshToken = this.settings.oauthRefreshTokenSecret
+      ? this.app.secretStorage.getSecret(this.settings.oauthRefreshTokenSecret)
+      : null;
+    if (!refreshToken) return null;
+
+    try {
+      const refreshedTokens = await refreshAccessToken(refreshToken);
+      await this.saveOAuthTokens(refreshedTokens);
+      return refreshedTokens.access_token;
+    } catch (error) {
+      console.error("Failed to refresh Todoist OAuth token:", error);
+      return null;
+    }
+  }
+
+  async initTodoistClient() {
+    const token = (await this.getOAuthAccessToken()) ?? this.getApiToken();
     if (token) {
-      this.api = new TodoistApi(token);
+      this.api = new TodoistApi(
+        token,
+        this.settings.oauthRefreshTokenSecret
+          ? () => this.refreshOAuthConnection()
+          : undefined,
+      );
       this.todoistService = new TodoistService(this.api);
     } else {
       this.api = null;
       this.todoistService = null;
     }
+  }
+
+  async disconnectTodoist() {
+    this.app.secretStorage.setSecret(this.oauthAccessTokenSecret, "");
+    this.app.secretStorage.setSecret(this.oauthRefreshTokenSecret, "");
+    this.settings.oauthAccessTokenSecret = "";
+    this.settings.oauthRefreshTokenSecret = "";
+    this.settings.oauthExpiresAt = undefined;
+    if (this.oauthRefreshTimer !== null) {
+      window.clearTimeout(this.oauthRefreshTimer);
+      this.oauthRefreshTimer = null;
+    }
+    await this.saveSettings();
+    await this.initTodoistClient();
+    new Notice("Todoist OAuth connection removed.");
   }
 
   async loadSettings() {

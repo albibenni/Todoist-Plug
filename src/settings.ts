@@ -21,6 +21,7 @@ export class TodoistSettingTab extends PluginSettingTab {
     containerEl.empty();
     containerEl.addClass("todoist-settings-tab");
 
+    this.oauthConnection(containerEl);
     this.apiToken(containerEl);
     new Setting(containerEl).setName("Defaults").setHeading();
     this.linksSetting(containerEl);
@@ -58,6 +59,32 @@ export class TodoistSettingTab extends PluginSettingTab {
     this.defPriority(containerEl);
     this.defDate(containerEl);
     this.defLabels(containerEl);
+  }
+
+  private oauthConnection(containerEl: HTMLElement) {
+    const connected = Boolean(this.plugin.settings.oauthAccessTokenSecret);
+    const connection = new Setting(containerEl)
+      .setName("Todoist account")
+      .setDesc(
+        connected
+          ? "Connected with Todoist OAuth. Tokens are stored in SecretStorage."
+          : "Connect securely with Todoist. No personal API token is required.",
+      );
+
+    connection.addButton((button) => {
+      button
+        .setButtonText(connected ? "Reconnect" : "Connect")
+        .setCta()
+        .onClick(() => void this.plugin.startOAuthConnection());
+    });
+    if (connected) {
+      connection.addButton((button) => {
+        button
+          .setButtonText("Disconnect")
+          .setWarning()
+          .onClick(() => void this.plugin.disconnectTodoist());
+      });
+    }
   }
 
   private linksSetting(containerEl: HTMLElement) {
@@ -111,7 +138,7 @@ export class TodoistSettingTab extends PluginSettingTab {
   private apiToken(containerEl: HTMLElement) {
     new Setting(containerEl)
       .setName("API token")
-      .setDesc("Select a secret from SecretStorage")
+      .setDesc("Optional fallback: select a personal token from SecretStorage.")
       .addComponent((el) =>
         new SecretComponent(this.app, el)
           .setValue(this.plugin.settings.apiToken || "")

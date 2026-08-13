@@ -13,13 +13,17 @@ import {
 export type { AddTaskArgs, Label, Project, Task };
 
 export class TodoistApi {
-  constructor(private token: string) {}
+  constructor(
+    private token: string,
+    private readonly refreshOnUnauthorized?: () => Promise<string | null>,
+  ) {}
 
   private async request<T>(
     method: "GET" | "POST",
     endpoint: string,
     schema: z.ZodType<T>,
     body?: unknown,
+    retriedAfterRefresh = false,
   ): Promise<T> {
     const req: RequestUrlParam = {
       url: `https://api.todoist.com/api/v1${endpoint}`,
@@ -38,6 +42,17 @@ export class TodoistApi {
 
     const res = await requestUrl(req);
 
+    if (
+      res.status === 401 &&
+      !retriedAfterRefresh &&
+      this.refreshOnUnauthorized
+    ) {
+      const refreshedToken = await this.refreshOnUnauthorized();
+      if (refreshedToken) {
+        this.token = refreshedToken;
+        return await this.request(method, endpoint, schema, body, true);
+      }
+    }
     if (res.status >= 400) {
       throw new Error(`Todoist API error: ${res.status}`);
     }

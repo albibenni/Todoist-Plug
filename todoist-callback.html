@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Returning to Obsidian…</title>
+  </head>
+  <body>
+    <p>Returning to Obsidian…</p>
+    <script>
+      const callback = new URL("obsidian://todoist-plug-auth");
+      callback.search = window.location.search;
+      window.location.replace(callback);
+    </script>
+  </body>
+</html>

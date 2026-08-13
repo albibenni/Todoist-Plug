@@ -2,6 +2,9 @@ import { z } from "zod";
 
 export const TodoistPluginSettingsSchema = z.object({
   apiToken: z.string().optional(),
+  oauthAccessTokenSecret: z.string().optional(),
+  oauthRefreshTokenSecret: z.string().optional(),
+  oauthExpiresAt: z.number().optional(),
   defaultProject: z.string().optional(),
   defaultPriority: z.number().min(1).max(4).default(1),
   defaultDate: z.string().default("today"),
@@ -12,6 +15,8 @@ export type TodoistPluginSettings = z.infer<typeof TodoistPluginSettingsSchema>;
 
 export const DEFAULT_SETTINGS: TodoistPluginSettings = {
   apiToken: "",
+  oauthAccessTokenSecret: "",
+  oauthRefreshTokenSecret: "",
   defaultPriority: 1,
   defaultDate: "today",
   defaultLabels: [],

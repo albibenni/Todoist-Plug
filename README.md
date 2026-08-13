@@ -20,6 +20,18 @@ A robust integration between Todoist and Obsidian for managing your tasks native
 - **Configurable Defaults**: A sleek, card-based Settings tab that allows you to configure your desired defaults for new tasks (Default Project, Default Priority, Default Date, and Default Labels).
 - **Secure Authentication**: Uses Obsidian's native OS keychain (`app.secretStorage`) to securely store your Todoist API token locally, preventing it from syncing in plaintext.
 
+## Authentication
+
+Use **Connect Todoist** in the plugin settings to authorize through Todoist OAuth.
+The plugin uses PKCE and stores its access and refresh tokens in Obsidian's native
+SecretStorage. A manually supplied personal token remains available as an optional
+fallback.
+
+OAuth requires the static callback and client metadata in this repository to be
+served at `https://albibenni.github.io/Todoist-Plug/`. Enable GitHub Pages from
+the repository root before distributing a release. The callback page only relays
+the short-lived authorization code to Obsidian; it does not store tokens.
+
 ## Available Commands
 
 Here is a detailed list of all actions you can perform using the Obsidian command palette (`Cmd/Ctrl + P`):

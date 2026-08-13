@@ -21,6 +21,9 @@ export class Plugin {
   registerView() {
     /* mock */
   }
+  registerObsidianProtocolHandler() {
+    /* mock */
+  }
 }
 
 export class Notice {}
@@ -39,6 +42,12 @@ export class Setting {
     return this;
   }
   addText() {
+    return this;
+  }
+  addButton() {
+    return this;
+  }
+  setHeading() {
     return this;
   }
 }

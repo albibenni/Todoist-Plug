@@ -90,4 +90,28 @@ describe("TodoistApi", () => {
       "Todoist API error: 401",
     );
   });
+
+  it("refreshes an OAuth token once after an unauthorized response", async () => {
+    const refreshToken = vi.fn().mockResolvedValue("fresh-token");
+    requestUrl
+      .mockResolvedValueOnce({ status: 401, json: null, text: "Unauthorized" })
+      .mockResolvedValueOnce({
+        status: 200,
+        json: { results: [task], next_cursor: null },
+        text: "",
+      });
+
+    const result = await new TodoistApi(
+      "expired-token",
+      refreshToken,
+    ).getTasks();
+
+    expect(result).toEqual([task]);
+    expect(refreshToken).toHaveBeenCalledOnce();
+    expect(requestUrl).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        headers: { Authorization: "Bearer fresh-token" },
+      }),
+    );
+  });
 });

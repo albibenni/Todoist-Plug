@@ -1,0 +1,12 @@
+{
+  "client_id": "https://albibenni.github.io/Todoist-Plug/oauth-client.json",
+  "client_name": "Todoist Plug for Obsidian",
+  "client_uri": "https://github.com/albibenni/Todoist-Plug",
+  "redirect_uris": [
+    "https://albibenni.github.io/Todoist-Plug/todoist-callback.html"
+  ],
+  "grant_types": ["authorization_code", "refresh_token"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none",
+  "scope": "data:read_write"
+}
