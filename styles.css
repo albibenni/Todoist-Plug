@@ -129,6 +129,31 @@
   border-color: var(--color-base-25);
 }
 
+.todoist-matching-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  margin: 1em 0;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.todoist-matching-task {
+  align-items: flex-start;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  display: flex;
+  gap: 0.6em;
+  padding: 0.6em;
+}
+
+.todoist-matching-task small {
+  color: var(--text-muted);
+  display: block;
+  margin-top: 0.2em;
+}
+
 .task-option-dialog {
   background-color: var(--modal-background);
   border: var(--modal-border-width) solid var(--modal-border-color);

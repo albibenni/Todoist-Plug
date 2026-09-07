@@ -79,6 +79,20 @@ describe("TodoistApi", () => {
     );
   });
 
+  it("deletes a task through the Todoist task endpoint", async () => {
+    requestUrl.mockResolvedValue({ status: 204, json: null, text: "" });
+
+    await new TodoistApi("token").deleteTask("task-1");
+
+    expect(requestUrl).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "https://api.todoist.com/api/v1/tasks/task-1",
+        method: "DELETE",
+        headers: { Authorization: "Bearer token" },
+      }),
+    );
+  });
+
   it("does not expose a successful-looking result for API errors", async () => {
     requestUrl.mockResolvedValue({
       status: 401,

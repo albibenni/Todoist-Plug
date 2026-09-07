@@ -21,6 +21,7 @@ import {
   type TodoistPluginSettings,
   TodoistPluginSettingsSchema,
 } from "./types";
+import { MatchingTasksModal } from "./ui/MatchingTasksModal";
 import { QuickAddModal } from "./ui/QuickAddModal";
 import { TaskRenderer } from "./ui/TaskRenderer";
 import { TODOIST_VIEW_TYPE, TodoistSidebarView } from "./ui/TodoistSidebarView";
@@ -178,13 +179,17 @@ export default class TodoistPlugin extends Plugin {
         try {
           const currentFile = this.app.workspace.getActiveFile();
           new Notice(`Searching Todoist for: "${text}"...`);
-          const exists = await this.todoistService.checkTaskExists(
+          const matchingTasks = await this.todoistService.findMatchingTasks(
             text,
             currentFile ? currentFile.basename : undefined,
           );
 
-          if (exists) {
-            new Notice("✅ Yes! This task already exists in Todoist.");
+          if (matchingTasks.length > 0) {
+            new MatchingTasksModal(
+              this.app,
+              this.todoistService,
+              matchingTasks,
+            ).open();
           } else {
             new Notice("❌ No matching task found in Todoist.");
           }

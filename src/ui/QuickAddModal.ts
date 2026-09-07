@@ -2,6 +2,7 @@ import { App, Menu, Modal, Notice, setIcon } from "obsidian";
 import type { AddTaskArgs, Label, Project } from "../api";
 import type { TodoistService } from "../services/TodoistService";
 import type { TodoistPluginSettings } from "../types";
+import { MatchingTasksModal } from "./MatchingTasksModal";
 
 export class QuickAddModal extends Modal {
   private taskTitle = "";
@@ -249,12 +250,16 @@ export class QuickAddModal extends Modal {
         checkBtn.textContent = "Checking...";
 
         try {
-          const exists = await this.service.checkTaskExists(
+          const matchingTasks = await this.service.findMatchingTasks(
             this.taskTitle,
             filenameForCheck,
           );
-          if (exists) {
-            new Notice("✅ Yes! This task already exists in Todoist.");
+          if (matchingTasks.length > 0) {
+            new MatchingTasksModal(
+              this.app,
+              this.service,
+              matchingTasks,
+            ).open();
           } else {
             new Notice("❌ No matching task found in Todoist.");
           }

@@ -7,6 +7,7 @@ describe("TodoistService", () => {
     addTask: ReturnType<typeof vi.fn>;
     getTasks: ReturnType<typeof vi.fn>;
     getTasksByFilter: ReturnType<typeof vi.fn>;
+    deleteTask: ReturnType<typeof vi.fn>;
   };
   let service: TodoistService;
 
@@ -15,6 +16,7 @@ describe("TodoistService", () => {
       addTask: vi.fn(),
       getTasks: vi.fn(),
       getTasksByFilter: vi.fn(),
+      deleteTask: vi.fn(),
     };
     service = new TodoistService(mockApi as unknown as TodoistApi);
   });
@@ -62,6 +64,21 @@ describe("TodoistService", () => {
   });
 
   describe("checkTaskExists", () => {
+    it("returns the matching tasks so callers can present them for deletion", async () => {
+      const matchingTask = {
+        id: "1",
+        content: "Buy milk",
+        project_id: "inbox",
+      };
+      mockApi.getTasksByFilter.mockResolvedValue([
+        matchingTask,
+        { id: "2", content: "Buy bread", project_id: "inbox" },
+      ]);
+
+      await expect(service.findMatchingTasks("Buy milk")).resolves.toEqual([
+        matchingTask,
+      ]);
+    });
     it("should return true if a task matches the sanitized text", async () => {
       mockApi.getTasksByFilter.mockResolvedValue([
         { id: "1", content: "Buy milk" },
@@ -116,5 +133,11 @@ describe("TodoistService", () => {
         "Failed to check task existence in Todoist",
       );
     });
+  });
+
+  it("deletes a selected task through the Todoist API", async () => {
+    await service.deleteTask("task-1");
+
+    expect(mockApi.deleteTask).toHaveBeenCalledWith("task-1");
   });
 });

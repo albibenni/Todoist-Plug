@@ -39,7 +39,7 @@ export class TodoistService {
     }
   }
 
-  async checkTaskExists(content: string, filename?: string): Promise<boolean> {
+  async findMatchingTasks(content: string, filename?: string): Promise<Task[]> {
     try {
       const sanitized = content
         .replace(
@@ -52,21 +52,34 @@ export class TodoistService {
 
       // Query Todoist using the exact same 'search:' syntax as the user's script
       const tasks = await this.fetchTasks(`search: ${searchTarget}`);
-      let exists = tasks.some((t) =>
+      let matches = tasks.filter((t) =>
         t.content.toLowerCase().includes(searchTarget),
       );
 
-      if (!exists && filename) {
+      if (matches.length === 0 && filename) {
         const fileTasks = await this.fetchTasks(`search: ${filename}`);
-        exists = fileTasks.some((t) =>
+        matches = fileTasks.filter((t) =>
           t.content.toLowerCase().includes(filename.toLowerCase()),
         );
       }
 
-      return exists;
+      return matches;
     } catch (error) {
       console.error("Failed to check task existence:", error);
       throw new Error("Failed to check task existence in Todoist");
+    }
+  }
+
+  async checkTaskExists(content: string, filename?: string): Promise<boolean> {
+    return (await this.findMatchingTasks(content, filename)).length > 0;
+  }
+
+  async deleteTask(taskId: string): Promise<void> {
+    try {
+      await this.api.deleteTask(taskId);
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+      throw new Error("Failed to delete task from Todoist");
     }
   }
 

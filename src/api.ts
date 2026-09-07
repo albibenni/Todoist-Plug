@@ -19,7 +19,7 @@ export class TodoistApi {
   ) {}
 
   private async request<T>(
-    method: "GET" | "POST",
+    method: "GET" | "POST" | "DELETE",
     endpoint: string,
     schema: z.ZodType<T>,
     body?: unknown,
@@ -55,6 +55,10 @@ export class TodoistApi {
     }
     if (res.status >= 400) {
       throw new Error(`Todoist API error: ${res.status}`);
+    }
+
+    if (res.status === 204) {
+      return schema.parse(undefined);
     }
 
     let data: unknown;
@@ -216,5 +220,13 @@ The number of objects to return in a page
   // }
   async addTask(args: AddTaskArgs): Promise<Task> {
     return await this.request<Task>("POST", "/tasks", TaskSchema, args);
+  }
+
+  async deleteTask(taskId: string): Promise<void> {
+    await this.request<void>(
+      "DELETE",
+      `/tasks/${encodeURIComponent(taskId)}`,
+      z.void(),
+    );
   }
 }
