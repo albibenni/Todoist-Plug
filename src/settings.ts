@@ -69,59 +69,6 @@ export class TodoistSettingTab extends PluginSettingTab {
     ];
   }
 
-  /** Fallback for Obsidian versions before 1.13. */
-  display(): void {
-    const { containerEl } = this;
-
-    containerEl.empty();
-    containerEl.addClass("todoist-settings-tab");
-
-    this.configureOauthConnection(
-      new Setting(containerEl)
-        .setName("Todoist account")
-        .setDesc(this.oauthDescription()),
-    );
-    this.configureApiToken(
-      new Setting(containerEl)
-        .setName("API token")
-        .setDesc(
-          "Optional fallback: select a personal token from SecretStorage.",
-        ),
-    );
-    new Setting(containerEl).setName("Defaults").setHeading();
-    this.configureLinks(
-      new Setting(containerEl)
-        .setName("Links")
-        .setDesc("Helpful links and resources for Todoist Plug."),
-    );
-
-    const projectSetting = new Setting(containerEl)
-      .setName("Default Project")
-      .setDesc(
-        "The default project where new tasks are created (defaults to Inbox).",
-      );
-
-    this.configureProject(projectSetting);
-
-    this.configurePriority(
-      new Setting(containerEl)
-        .setName("Default Priority")
-        .setDesc(
-          "The default priority for new tasks (1 = Normal, 4 = Highest). Note: Todoist API treats 1 as normal (P4) and 4 as highest (P1).",
-        ),
-    );
-    this.configureDate(
-      new Setting(containerEl)
-        .setName("Default Date")
-        .setDesc("The default due date string for new tasks."),
-    );
-    this.configureLabels(
-      new Setting(containerEl)
-        .setName("Default Labels")
-        .setDesc("Comma-separated list of labels to apply by default."),
-    );
-  }
-
   private oauthDescription(): string {
     const connected = Boolean(this.plugin.settings.oauthAccessTokenSecret);
     return connected
@@ -139,14 +86,10 @@ export class TodoistSettingTab extends PluginSettingTab {
     });
     if (connected) {
       setting.addButton((button) => {
-        button.setButtonText("Disconnect");
-        if (typeof button.setDestructive === "function") {
-          button.setDestructive();
-        } else {
-          // Preserve the warning style on Obsidian versions before 1.13.
-          button.buttonEl.addClass("mod-warning");
-        }
-        button.onClick(() => void this.plugin.disconnectTodoist());
+        button
+          .setButtonText("Disconnect")
+          .setDestructive()
+          .onClick(() => void this.plugin.disconnectTodoist());
       });
     }
   }
