@@ -47,7 +47,7 @@ export class MatchingTasksModal extends Modal {
       this.renderSelection();
     });
 
-    const list = this.contentEl.createEl("div", {
+    const list = this.contentEl.createDiv({
       cls: "todoist-matching-tasks",
     });
     for (const task of this.tasks) {
