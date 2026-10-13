@@ -284,7 +284,9 @@ export class QuickAddModal extends Modal {
 
     // Focus and resize initially
     window.setTimeout(() => {
-      titleInput.focus();
+      if (!this.isMobileDocument(titleInput.ownerDocument)) {
+        titleInput.focus();
+      }
       this.autoResizeTextarea(titleInput);
       this.autoResizeTextarea(descInput);
     }, 100);
@@ -301,6 +303,13 @@ export class QuickAddModal extends Modal {
   private autoResizeTextarea(textarea: HTMLTextAreaElement) {
     textarea.setCssStyles({ height: "auto" });
     textarea.setCssStyles({ height: textarea.scrollHeight + "px" });
+  }
+
+  private isMobileDocument(ownerDocument: Document) {
+    return (
+      ownerDocument.body.classList.contains("is-mobile") ||
+      ownerDocument.documentElement.classList.contains("is-mobile")
+    );
   }
 
   private showProjectPopover(
@@ -633,7 +642,9 @@ export class QuickAddModal extends Modal {
     this.popoverCleanups.add(cleanup);
     timeoutId = window.setTimeout(() => {
       ownerDocument.addEventListener("click", closePopover);
-      focusElement?.focus();
+      if (!this.isMobileDocument(ownerDocument)) {
+        focusElement?.focus();
+      }
     }, 0);
   }
 

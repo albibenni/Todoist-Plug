@@ -44,6 +44,47 @@ const settings = {
 };
 
 describe("QuickAddModal", () => {
+  it("does not open the virtual keyboard when the project picker opens on mobile", () => {
+    vi.useFakeTimers();
+    document.body.classList.add("is-mobile");
+
+    try {
+      const service = {
+        getLabels: vi.fn().mockResolvedValue([]),
+        getProjects: vi.fn().mockResolvedValue([]),
+      };
+      const modal = new QuickAddModal(
+        {} as never,
+        service as never,
+        settings,
+        "Mobile task",
+      );
+      modal.onOpen();
+
+      const titleInput = modal.contentEl.querySelector<HTMLTextAreaElement>(
+        ".task-name textarea",
+      );
+      const focusTitle = vi.spyOn(titleInput!, "focus");
+
+      const projectButton =
+        modal.contentEl.querySelector<HTMLButtonElement>(".project-selector");
+      projectButton?.click();
+
+      const searchInput = document.body.querySelector<HTMLInputElement>(
+        ".task-project-menu input",
+      );
+      const focusSearch = vi.spyOn(searchInput!, "focus");
+      vi.runAllTimers();
+
+      expect(focusTitle).not.toHaveBeenCalled();
+      expect(focusSearch).not.toHaveBeenCalled();
+      modal.onClose();
+    } finally {
+      document.body.classList.remove("is-mobile");
+      vi.useRealTimers();
+    }
+  });
+
   it("submits only once while a task request is in flight", async () => {
     let finishRequest: (() => void) | undefined;
     const service = {
