@@ -1,9 +1,23 @@
-// biome-ignore lint/suspicious/noExplicitAny: mock
-(HTMLElement.prototype as any).createEl = function (
-  tag: string,
-  // biome-ignore lint/suspicious/noExplicitAny: mock
-  options?: any,
-) {
+interface ObsidianElementPrototype {
+  createEl<K extends keyof HTMLElementTagNameMap>(
+    this: HTMLElement,
+    tag: K,
+    options?: { cls?: string | string[]; text?: string; type?: string },
+  ): HTMLElementTagNameMap[K];
+  createSpan(
+    this: HTMLElement,
+    options?: { cls?: string | string[]; text?: string },
+  ): HTMLSpanElement;
+  createDiv(
+    this: HTMLElement,
+    options?: { cls?: string | string[]; text?: string },
+  ): HTMLDivElement;
+}
+
+const elementPrototype =
+  HTMLElement.prototype as unknown as ObsidianElementPrototype;
+
+elementPrototype.createEl = function (tag, options) {
   const el = document.createElement(tag);
   if (options) {
     if (options.cls) {
@@ -17,23 +31,25 @@
       el.textContent = options.text;
     }
     if (options.type) {
-      // biome-ignore lint/suspicious/noExplicitAny: mock
-      (el as any).type = options.type;
+      el.setAttribute("type", options.type);
     }
   }
   this.appendChild(el);
   return el;
 };
-// biome-ignore lint/suspicious/noExplicitAny: mock
-(HTMLElement.prototype as any).createSpan = function (options?: any) {
-  return this.createEl("span", options);
+elementPrototype.createSpan = function (options) {
+  return elementPrototype.createEl.call(
+    this,
+    "span",
+    options,
+  ) as HTMLSpanElement;
 };
-// biome-ignore lint/suspicious/noExplicitAny: mock
-(HTMLElement.prototype as any).createDiv = function (options?: any) {
-  return this.createEl("div", options);
+elementPrototype.createDiv = function (options) {
+  return elementPrototype.createEl.call(this, "div", options) as HTMLDivElement;
 };
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
+
 import type { Task } from "../api";
 import { TaskRenderer } from "./TaskRenderer";
 

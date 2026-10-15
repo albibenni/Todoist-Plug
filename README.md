@@ -64,20 +64,24 @@ To comply with Obsidian's plugin guidelines, here is a full disclosure of this p
 ## How to use
 
 1. Clone this repository into your vault's plugin folder (`.obsidian/plugins/Todoist-Plug`).
-2. Ensure you have NodeJS installed (v18+).
-3. Run `pnpm i` to install dependencies.
+2. Ensure you have Node.js 24 or newer installed.
+3. Run `vp install` to install dependencies.
 4. Run `pnpm run dev` to compile the plugin.
 5. Enable the plugin in Obsidian settings.
 6. Open the plugin settings and paste your Todoist API token to get started.
 
 ## Development
 
-This project uses `pnpm` for package management and `biome` for lightning-fast linting and formatting.
+This project uses Vite+ with pnpm for package management, static checks, formatting,
+and tests. The Obsidian plugin bundle continues to use esbuild.
 
 - `pnpm run dev` - Compile in watch mode
 - `pnpm run build` - Build for production
-- `pnpm run lint` - Run Biome checks
-- `pnpm run indent:write` - Format codebase with Biome
+- `pnpm run check` - Check formatting, lint rules, and TypeScript
+- `pnpm run check:fix` - Format and apply safe lint fixes
+- `pnpm run test` - Run the test suite once
+- `pnpm run test:watch` - Run tests in watch mode
+- `pnpm run ci` - Run checks, tests, and the production build
 
 ## License
 

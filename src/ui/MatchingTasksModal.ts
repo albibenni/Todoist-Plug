@@ -1,4 +1,5 @@
 import { App, Modal, Notice } from "obsidian";
+
 import type { Project, Task } from "../api";
 import type { TodoistService } from "../services/TodoistService";
 

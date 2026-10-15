@@ -1,3 +1,2 @@
 echo "Running pre-push hook..."
-pnpm run lint
-pnpm run test
+pnpm run ci

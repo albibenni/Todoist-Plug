@@ -13,22 +13,17 @@ jobs:
             id-token: write
             attestations: write
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
-            - name: Install pnpm
-              uses: pnpm/action-setup@v6
+            - name: Set up Vite+
+              uses: voidzero-dev/setup-vp@v1.21.2
               with:
-                  version: 11
-            - name: Use Node.js
-              uses: actions/setup-node@v6
-              with:
-                  node-version: 24
-                  cache: 'pnpm'
+                  node-version: '24'
+                  cache: true
+                  run-install: true
 
             - name: Build plugin
-              run: |
-                  pnpm install --frozen-lockfile --ignore-scripts
-                  pnpm run build
+              run: vp run build
 
             - name: Check for optional styles
               id: styles

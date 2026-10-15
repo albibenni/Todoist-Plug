@@ -1,37 +1,45 @@
 {
   "name": "Todoist-Plug",
   "version": "3.0.4",
-  "description": "A robust integration between Todoist and Obsidian",
-  "main": "main.js",
-  "type": "module",
   "private": true,
+  "description": "A robust integration between Todoist and Obsidian",
+  "keywords": [],
+  "license": "MIT",
+  "type": "module",
+  "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "check": "vp check",
+    "check:fix": "vp check --fix",
+    "ci": "vp check && vp test run && vp run build",
+    "format": "vp fmt . --write",
+    "format:check": "vp fmt . --check",
+    "lint": "vp lint",
     "release": "node release.mjs",
     "version": "node version-bump.mjs && pnpm run indent:write && git add manifest.json versions.json",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "lint": "biome check .",
-    "indent:write": "biome format --write .",
+    "test": "vp test run",
+    "test:watch": "vp test",
+    "indent:write": "vp fmt . --write",
     "prepare": "husky"
   },
-  "keywords": [],
-  "license": "MIT",
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.6",
     "@testing-library/dom": "^10.4.1",
     "@types/node": "^26.1.2",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "catalog:",
     "esbuild": "0.28.1",
     "husky": "^9.1.7",
     "jsdom": "^30.0.1",
     "obsidian": "^1.13.1",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.10"
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   },
-  "dependencies": {
-    "zod": "^4.4.3"
-  },
-  "onlyBuiltDependencies": ["esbuild"]
+  "packageManager": "pnpm@12.4.2",
+  "onlyBuiltDependencies": [
+    "esbuild"
+  ]
 }

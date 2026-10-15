@@ -1,5 +1,6 @@
 import { type RequestUrlParam, requestUrl } from "obsidian";
 import { z } from "zod";
+
 import {
   type AddTaskArgs,
   type Label,

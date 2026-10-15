@@ -1,5 +1,6 @@
 import type { App } from "obsidian";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vite-plus/test";
+
 import type { Task } from "../api";
 import type { TodoistService } from "../services/TodoistService";
 import { MatchingTasksModal } from "./MatchingTasksModal";

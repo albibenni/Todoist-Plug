@@ -1,5 +1,18 @@
-// biome-ignore lint/suspicious/noExplicitAny: Obsidian DOM helpers test shim
-const elementPrototype = HTMLElement.prototype as any;
+interface ObsidianElementPrototype {
+  empty(this: HTMLElement): void;
+  addClass(this: HTMLElement, ...classes: string[]): void;
+  setCssStyles(this: HTMLElement, styles: Record<string, string>): void;
+  createEl<K extends keyof HTMLElementTagNameMap>(
+    this: HTMLElement,
+    tag: K,
+    options?: { cls?: string | string[]; text?: string; type?: string },
+  ): HTMLElementTagNameMap[K];
+  createDiv(this: HTMLElement, className?: string): HTMLDivElement;
+  createSpan(this: HTMLElement, className?: string): HTMLSpanElement;
+}
+
+const elementPrototype =
+  HTMLElement.prototype as unknown as ObsidianElementPrototype;
 
 elementPrototype.empty = function () {
   this.replaceChildren();
@@ -10,10 +23,11 @@ elementPrototype.addClass = function (...classes: string[]) {
 elementPrototype.setCssStyles = function (styles: Record<string, string>) {
   Object.assign(this.style, styles);
 };
-elementPrototype.createEl = function (
-  tag: string,
+elementPrototype.createEl = function <K extends keyof HTMLElementTagNameMap>(
+  this: HTMLElement,
+  tag: K,
   options?: { cls?: string | string[]; text?: string; type?: string },
-) {
+): HTMLElementTagNameMap[K] {
   const element = document.createElement(tag);
   if (options?.cls) {
     element.classList.add(
@@ -27,14 +41,19 @@ elementPrototype.createEl = function (
   this.appendChild(element);
   return element;
 };
-elementPrototype.createDiv = function (options?: string) {
-  return this.createEl("div", { cls: options });
+elementPrototype.createDiv = function (className) {
+  return elementPrototype.createEl.call(this, "div", {
+    cls: className,
+  }) as HTMLDivElement;
 };
-elementPrototype.createSpan = function (options?: string) {
-  return this.createEl("span", { cls: options });
+elementPrototype.createSpan = function (className) {
+  return elementPrototype.createEl.call(this, "span", {
+    cls: className,
+  }) as HTMLSpanElement;
 };
 
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
+
 import { QuickAddModal } from "./QuickAddModal";
 
 const settings = {

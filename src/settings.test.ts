@@ -7,7 +7,8 @@ import type {
   SettingDefinitionItem,
   SettingGroup,
 } from "obsidian";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
+
 import type TodoistPlugin from "./main";
 import { TodoistSettingTab } from "./settings";
 import { DEFAULT_SETTINGS } from "./types";

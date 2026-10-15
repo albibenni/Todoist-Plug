@@ -6,6 +6,7 @@ import {
   Plugin,
   type WorkspaceLeaf,
 } from "obsidian";
+
 import { TodoistApi } from "./api";
 import {
   createAuthorizationRequest,

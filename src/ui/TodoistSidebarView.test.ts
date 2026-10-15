@@ -1,5 +1,19 @@
-// biome-ignore lint/suspicious/noExplicitAny: Obsidian DOM helpers test shim
-const elementPrototype = HTMLElement.prototype as any;
+interface ObsidianElementPrototype {
+  empty(this: HTMLElement): void;
+  addClass(this: HTMLElement, ...classes: string[]): void;
+  createEl<K extends keyof HTMLElementTagNameMap>(
+    this: HTMLElement,
+    tag: K,
+    options?: { cls?: string | string[]; text?: string; type?: string },
+  ): HTMLElementTagNameMap[K];
+  createSpan(
+    this: HTMLElement,
+    options?: { cls?: string; text?: string },
+  ): HTMLSpanElement;
+}
+
+const elementPrototype =
+  HTMLElement.prototype as unknown as ObsidianElementPrototype;
 
 elementPrototype.empty = function () {
   this.replaceChildren();
@@ -7,10 +21,11 @@ elementPrototype.empty = function () {
 elementPrototype.addClass = function (...classes: string[]) {
   this.classList.add(...classes);
 };
-elementPrototype.createEl = function (
-  tag: string,
+elementPrototype.createEl = function <K extends keyof HTMLElementTagNameMap>(
+  this: HTMLElement,
+  tag: K,
   options?: { cls?: string | string[]; text?: string; type?: string },
-) {
+): HTMLElementTagNameMap[K] {
   const element = document.createElement(tag);
   if (options?.cls) {
     element.classList.add(
@@ -26,10 +41,15 @@ elementPrototype.createSpan = function (options?: {
   cls?: string;
   text?: string;
 }) {
-  return this.createEl("span", options);
+  return elementPrototype.createEl.call(
+    this,
+    "span",
+    options,
+  ) as HTMLSpanElement;
 };
 
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
+
 import { TodoistSidebarView } from "./TodoistSidebarView";
 
 describe("TodoistSidebarView", () => {

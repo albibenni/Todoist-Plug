@@ -6,6 +6,7 @@ import {
   type SettingDefinitionItem,
   setIcon,
 } from "obsidian";
+
 import type TodoistPlugin from "./main";
 
 export class TodoistSettingTab extends PluginSettingTab {

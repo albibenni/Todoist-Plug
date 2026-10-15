@@ -1,4 +1,5 @@
 import { App, Menu, Modal, Notice, setIcon } from "obsidian";
+
 import type { AddTaskArgs, Label, Project } from "../api";
 import type { TodoistService } from "../services/TodoistService";
 import type { TodoistPluginSettings } from "../types";
@@ -629,7 +630,6 @@ export class QuickAddModal extends Modal {
     ownerDocument: Document,
     focusElement?: HTMLElement,
   ) {
-    let timeoutId: number | undefined;
     const closePopover = (event: MouseEvent) => {
       if (!popover.contains(event.target as Node)) cleanup();
     };
@@ -640,7 +640,7 @@ export class QuickAddModal extends Modal {
       this.popoverCleanups.delete(cleanup);
     };
     this.popoverCleanups.add(cleanup);
-    timeoutId = window.setTimeout(() => {
+    const timeoutId = window.setTimeout(() => {
       ownerDocument.addEventListener("click", closePopover);
       if (!this.isMobileDocument(ownerDocument)) {
         focusElement?.focus();

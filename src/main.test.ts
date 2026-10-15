@@ -1,7 +1,15 @@
-// biome-ignore lint/suspicious/noExplicitAny: mock
-(globalThis as any).createEl = (tag: string) => document.createElement(tag);
+globalThis.createEl = <K extends keyof HTMLElementTagNameMap>(
+  tag: K,
+  _options?: unknown,
+  callback?: (element: HTMLElementTagNameMap[K]) => void,
+): HTMLElementTagNameMap[K] => {
+  const element = document.createElement(tag);
+  callback?.(element);
+  return element;
+};
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
+
 import TodoistPlugin from "./main";
 
 // Mock the Todoist SDK
@@ -14,6 +22,7 @@ vi.mock("@doist/todoist-sdk", () => {
 });
 
 import type { App, PluginManifest } from "obsidian";
+
 import type { TodoistApi } from "./api";
 import type { TodoistService } from "./services/TodoistService";
 import type { TodoistPluginSettings } from "./types";

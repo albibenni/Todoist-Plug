@@ -1,4 +1,5 @@
 import { ItemView, setIcon, type WorkspaceLeaf } from "obsidian";
+
 import type TodoistPlugin from "../main";
 import { TaskRenderer } from "./TaskRenderer";
 
