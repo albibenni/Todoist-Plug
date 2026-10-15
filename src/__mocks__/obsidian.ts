@@ -1,6 +1,6 @@
 export class Plugin {
   app: unknown;
-  constructor(app: unknown, manifest: unknown) {
+  constructor(app: unknown, _manifest: unknown) {
     this.app = app;
   }
   addSettingTab() {
@@ -29,7 +29,7 @@ export class Plugin {
 export class Notice {}
 
 export class PluginSettingTab {
-  constructor(app: unknown, plugin: unknown) {
+  constructor(_app: unknown, _plugin: unknown) {
     /* mock */
   }
 }
@@ -55,7 +55,7 @@ export class Setting {
 export class App {}
 export class Modal {
   contentEl: HTMLElement;
-  constructor(app: unknown) {
+  constructor(_app: unknown) {
     this.contentEl = document.createElement("div");
   }
   open() {
@@ -69,17 +69,17 @@ export class Modal {
 export class ItemView {
   containerEl: HTMLElement;
   contentEl: HTMLElement;
-  constructor(leaf: unknown) {
+  constructor(_leaf: unknown) {
     this.containerEl = document.createElement("div");
     this.contentEl = document.createElement("div");
   }
 }
 
-export const setIcon = (el: HTMLElement, iconId: string) => {
+export const setIcon = (_el: HTMLElement, _iconId: string) => {
   /* mock */
 };
 
-export const requestUrl = (params: unknown) => {
+export const requestUrl = (_params: unknown) => {
   return Promise.resolve({
     status: 200,
     headers: {},

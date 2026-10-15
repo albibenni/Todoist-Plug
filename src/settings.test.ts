@@ -82,13 +82,15 @@ describe("TodoistSettingTab", () => {
   });
 
   it("keeps the account actions and marks disconnect as destructive", () => {
+    const startOAuthConnection = vi.fn();
+    const disconnectTodoist = vi.fn();
     const plugin = {
       settings: {
         ...DEFAULT_SETTINGS,
         oauthAccessTokenSecret: "todoist-access-token",
       },
-      startOAuthConnection: vi.fn(),
-      disconnectTodoist: vi.fn(),
+      startOAuthConnection,
+      disconnectTodoist,
     } as unknown as TodoistPlugin;
     const tab = new TodoistSettingTab({} as App, plugin);
     const buttons: Array<{
@@ -139,7 +141,7 @@ describe("TodoistSettingTab", () => {
     expect(buttons[1]?.destructive).toBe(true);
     buttons[0]?.click();
     buttons[1]?.click();
-    expect(plugin.startOAuthConnection).toHaveBeenCalledOnce();
-    expect(plugin.disconnectTodoist).toHaveBeenCalledOnce();
+    expect(startOAuthConnection).toHaveBeenCalledOnce();
+    expect(disconnectTodoist).toHaveBeenCalledOnce();
   });
 });

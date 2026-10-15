@@ -29,12 +29,14 @@ import type { TodoistPluginSettings } from "./types";
 
 describe("TodoistPlugin Token Logic", () => {
   let appMock: App;
+  let getSecret: ReturnType<typeof vi.fn>;
   let plugin: TodoistPlugin;
 
   beforeEach(() => {
+    getSecret = vi.fn();
     appMock = {
       secretStorage: {
-        getSecret: vi.fn(),
+        getSecret,
         setSecret: vi.fn(),
       },
     } as unknown as App;
@@ -47,23 +49,19 @@ describe("TodoistPlugin Token Logic", () => {
 
   describe("getApiToken", () => {
     it("should securely retrieve the token from app.secretStorage", () => {
-      // @ts-ignore
-      appMock.secretStorage.getSecret.mockReturnValue("test-token");
+      getSecret.mockReturnValue("test-token");
       plugin.settings.apiToken = "my-secret-name";
 
       const token = plugin.getApiToken();
 
-      expect(appMock.secretStorage.getSecret).toHaveBeenCalledWith(
-        "my-secret-name",
-      );
+      expect(getSecret).toHaveBeenCalledWith("my-secret-name");
       expect(token).toBe("test-token");
     });
   });
 
   describe("initTodoistClient", () => {
     it("should initialize clients if a token exists", async () => {
-      // @ts-ignore
-      appMock.secretStorage.getSecret.mockReturnValue("test-token");
+      getSecret.mockReturnValue("test-token");
 
       await plugin.initTodoistClient();
 
@@ -72,8 +70,7 @@ describe("TodoistPlugin Token Logic", () => {
     });
 
     it("should set clients to null if no token exists", async () => {
-      // @ts-ignore
-      appMock.secretStorage.getSecret.mockReturnValue(null);
+      getSecret.mockReturnValue(null);
 
       // Pre-fill with fake data to verify it gets wiped
       plugin.api = {} as TodoistApi;

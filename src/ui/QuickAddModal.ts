@@ -649,7 +649,7 @@ export class QuickAddModal extends Modal {
   }
 
   private closePopovers() {
-    for (const cleanup of [...this.popoverCleanups]) cleanup();
+    for (const cleanup of this.popoverCleanups) cleanup();
   }
 
   private async submitTask() {

@@ -245,7 +245,7 @@ export default class TodoistPlugin extends Plugin {
     // Markdown Code Block Processor for Task Materialization
     this.registerMarkdownCodeBlockProcessor(
       "todoist",
-      async (source, el, ctx) => {
+      async (source, el, _ctx) => {
         if (!this.todoistService) {
           const p = createEl("p");
           p.textContent = "Todoist API token is not set.";
